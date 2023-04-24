@@ -11,10 +11,11 @@
         "declaration": false,        
         "baseUrl": ".",
         "paths": {
-            "@src/*":["src/*"],
-            "@scom/scom-commission-proxy-contract": ["repos/scom-commission-proxy-contract"]
+            "@ijstech/components": ["node_modules/@ijstech/components"],
+            "@modules/*": ["modules/*"],
+            "@scom/scom-commission-claim": ["ref"]
         }
     },
-    "include": ["src/**/*.ts","src/**/*.tsx"],
-    "exclude": ["node_src"]
+    "include": ["modules/**/*.ts","modules/**/*.tsx"],
+    "exclude": ["node_modules"]
 }
