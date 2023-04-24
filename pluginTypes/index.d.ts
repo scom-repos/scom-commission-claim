@@ -798,7 +798,7 @@ declare module "@scom/scom-commission-claim/scconfig.json.ts" {
 }
 /// <amd-module name="@scom/scom-commission-claim" />
 declare module "@scom/scom-commission-claim" {
-    import { Module, Container, ControlElement } from '@ijstech/components';
+    import { Module, Container, ControlElement, IDataSchema } from '@ijstech/components';
     import { IConfig, PageBlock } from "@scom/scom-commission-claim/interface.ts";
     interface ScomCommissionClaimElement extends ControlElement {
         description?: string;
@@ -822,8 +822,10 @@ declare module "@scom/scom-commission-claim" {
         private mdAlert;
         private lblAddress;
         private _data;
+        private _oldData;
         private $eventBus;
         tag: any;
+        private oldTag;
         defaultEdit: boolean;
         readonly onConfirm: () => Promise<void>;
         readonly onDiscard: () => Promise<void>;
@@ -838,6 +840,8 @@ declare module "@scom/scom-commission-claim" {
         setData(data: IConfig): Promise<void>;
         getTag(): any;
         setTag(value: any): Promise<void>;
+        private updateStyle;
+        private updateTheme;
         edit(): Promise<void>;
         confirm(): Promise<void>;
         discard(): Promise<void>;
@@ -848,6 +852,36 @@ declare module "@scom/scom-commission-claim" {
         private refetchClaimAmount;
         private selectToken;
         private onClaim;
+        getEmbedderActions(): {
+            name: string;
+            icon: string;
+            command: (builder: any, userInputData: any) => {
+                execute: () => Promise<void>;
+                undo: () => void;
+                redo: () => void;
+            };
+            userInputDataSchema: IDataSchema;
+        }[];
+        getActions(): {
+            name: string;
+            icon: string;
+            command: (builder: any, userInputData: any) => {
+                execute: () => Promise<void>;
+                undo: () => void;
+                redo: () => void;
+            };
+            userInputDataSchema: IDataSchema;
+        }[];
+        _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema): {
+            name: string;
+            icon: string;
+            command: (builder: any, userInputData: any) => {
+                execute: () => Promise<void>;
+                undo: () => void;
+                redo: () => void;
+            };
+            userInputDataSchema: IDataSchema;
+        }[];
         render(): any;
     }
 }

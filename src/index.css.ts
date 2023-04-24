@@ -1,7 +1,7 @@
 import { Styles } from "@ijstech/components";
 
-Styles.Theme.defaultTheme.background.modal = "#fff";
-Styles.Theme.applyTheme(Styles.Theme.defaultTheme);
+// Styles.Theme.defaultTheme.background.modal = "#fff";
+// Styles.Theme.applyTheme(Styles.Theme.defaultTheme);
 
 export const imageStyle = Styles.style({
   $nest: {
@@ -20,7 +20,7 @@ export const markdownStyle = Styles.style({
 export const inputStyle = Styles.style({
   $nest: {
     '> input': {
-      background: '#ffffff',
+      background: 'transparent',
       border: 0,
       padding: '0.25rem 0.5rem',
       textAlign: 'right'

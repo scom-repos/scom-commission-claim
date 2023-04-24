@@ -11,7 +11,8 @@ import {
   IEventBus,
   application,
   customElements,
-  ControlElement
+  ControlElement,
+  IDataSchema
 } from '@ijstech/components';
 import { IConfig, ITokenObject, PageBlock } from './interface';
 import { EventId, getContractAddress, setDataFromSCConfig } from './store/index';
@@ -52,8 +53,10 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
   private lblAddress: Label;
 
   private _data: IConfig = {};
+  private _oldData: IConfig = {};
   private $eventBus: IEventBus;
   tag: any = {};
+  private oldTag: any = {};
   defaultEdit: boolean = true;
   readonly onConfirm: () => Promise<void>;
   readonly onDiscard: () => Promise<void>;
@@ -119,7 +122,23 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
   }
 
   async setTag(value: any) {
-    this.tag = value;
+    const newValue = value || {};
+    for (let prop in newValue) {
+      if (newValue.hasOwnProperty(prop))
+        this.tag[prop] = newValue[prop];
+    }
+    this.updateTheme();
+  }
+
+  private updateStyle(name: string, value: any) {
+    value ?
+      this.style.setProperty(name, value) :
+      this.style.removeProperty(name);
+  }
+
+  private updateTheme() {
+    this.updateStyle('--text-primary', this.tag?.fontColor);
+    this.updateStyle('--background-main', this.tag?.backgroundColor);
   }
 
   async edit() {
@@ -195,7 +214,7 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
     this.mdAlert.message = {
       status: 'warning',
       content: 'Confirming'
-    };0
+    };
     this.mdAlert.showModal();
     claim(this.tokenSelection.token, (error: Error, receipt?: string) => {
       if (error) {
@@ -210,9 +229,127 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
     });
   }
 
+  getEmbedderActions() {
+    const propertiesSchema: IDataSchema = {
+      type: 'object',
+      properties: {
+        "description": {
+          type: 'string',
+          format: 'multi'
+        },
+        "logo": {
+          type: 'string',
+          format: 'data-url'
+        }
+      }
+    };
+    const themeSchema: IDataSchema = {
+      type: 'object',
+      properties: {
+        backgroundColor: {
+          type: 'string',
+          format: 'color',
+          readOnly: true
+        },
+        fontColor: {
+          type: 'string',
+          format: 'color',
+          readOnly: true
+        }
+      }
+    }
+
+    return this._getActions(propertiesSchema, themeSchema);
+  }
+
+  getActions() {
+    const propertiesSchema: IDataSchema = {
+      type: 'object',
+      properties: {
+        "description": {
+          type: 'string',
+          format: 'multi'
+        },
+        "logo": {
+          type: 'string',
+          format: 'data-url'
+        }
+      }
+    };
+
+    const themeSchema: IDataSchema = {
+      type: 'object',
+      properties: {
+        backgroundColor: {
+          type: 'string',
+          format: 'color'
+        },
+        fontColor: {
+          type: 'string',
+          format: 'color'
+        }
+      }
+    }
+
+    return this._getActions(propertiesSchema, themeSchema);
+  }
+
+  _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema) {
+    const actions = [
+      {
+        name: 'Settings',
+        icon: 'cog',
+        command: (builder: any, userInputData: any) => {
+          return {
+            execute: async () => {
+              this._oldData = { ...this._data };
+              if (userInputData.logo != undefined) this._data.logo = userInputData.logo;
+              console.log(userInputData)
+              if (userInputData.description != undefined) this._data.description = userInputData.description;
+              this.configDApp.data = this._data;
+              this.setData(this._data);
+              if (builder?.setData) builder.setData(this._data);
+            },
+            undo: () => {
+              this._data = { ...this._oldData };
+              this.configDApp.data = this._data;
+              this.setData(this._data);
+              if (builder?.setData) builder.setData(this._data);
+            },
+            redo: () => { }
+          }
+        },
+        userInputDataSchema: propertiesSchema
+      },
+      {
+        name: 'Theme Settings',
+        icon: 'palette',
+        command: (builder: any, userInputData: any) => {
+          return {
+            execute: async () => {
+              if (!userInputData) return;
+              this.oldTag = { ...this.tag };
+              if (builder) builder.setTag(userInputData);
+              else this.setTag(userInputData);
+            },
+            undo: () => {
+              if (!userInputData) return;
+              this.tag = { ...this.oldTag };
+              if (builder) builder.setTag(this.tag);
+              else this.setTag(this.oldTag);
+            },
+            redo: () => { }
+          }
+        },
+        userInputDataSchema: themeSchema
+      }
+    ]
+    return actions
+  }
+
   render() {
     return (
-      <i-panel>
+      <i-panel background={{color: Theme.background.main}}>
         <i-grid-layout
           id='gridDApp'
           maxWidth="500px"
@@ -222,7 +359,7 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
           <i-vstack 
             gap="0.5rem" 
             padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }} 
-            background={{ color: '#f1f1f1' }} verticalAlignment='space-between' horizontalAlignment="center">
+            verticalAlignment='space-between' horizontalAlignment="center">
             <i-label caption="Commission Claim" font={{ bold: true, size: '1rem' }}></i-label>
             <i-vstack gap='0.25rem'>
               <i-image id='imgLogo' class={imageStyle} height={100}></i-image>

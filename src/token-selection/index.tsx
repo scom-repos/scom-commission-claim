@@ -225,7 +225,7 @@ export class TokenSelection extends Module {
             horizontalAlignment='space-between'
             verticalAlignment='center'
             padding={{ top: '1rem', bottom: '1rem' }}
-            border={{ bottom: { width: 1, style: 'solid', color: '#f1f1f1' } }}
+            border={{ bottom: { width: 1, style: 'solid', color: Theme.divider } }}
             margin={{ bottom: '1rem', left: '1rem', right: '1rem' }}
             gap={4}
           >
