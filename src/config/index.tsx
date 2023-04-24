@@ -36,7 +36,10 @@ export default class Config extends Module {
 
   get data(): IConfig {
     const config: IConfig = {
-      description: this.edtDescription.value || ""
+      description: this.edtDescription.value || "",
+      defaultChainId: 0,
+      wallets: [],
+      networks: []
     };
     if (this._logo) {
       config.logo = this._logo;

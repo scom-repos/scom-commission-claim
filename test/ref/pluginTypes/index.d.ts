@@ -1,6 +1,7 @@
 /// <reference path="@ijstech/eth-contract/index.d.ts" />
 /// <amd-module name="@scom/scom-commission-claim/interface.ts" />
 declare module "@scom/scom-commission-claim/interface.ts" {
+    import { IClientSideProvider } from '@ijstech/eth-wallet';
     export interface PageBlock {
         getData: () => any;
         setData: (data: any) => Promise<void>;
@@ -20,6 +21,10 @@ declare module "@scom/scom-commission-claim/interface.ts" {
     export interface IConfig {
         description?: string;
         logo?: string;
+        defaultChainId: number;
+        wallets: IWalletPlugin[];
+        networks: INetworkConfig[];
+        showHeader?: boolean;
     }
     export interface ITokenObject {
         address?: string;
@@ -33,6 +38,15 @@ declare module "@scom/scom-commission-claim/interface.ts" {
         isNative?: boolean | null;
         isWETH?: boolean | null;
         isNew?: boolean | null;
+    }
+    export interface IWalletPlugin {
+        name: string;
+        packageName?: string;
+        provider?: IClientSideProvider;
+    }
+    export interface INetworkConfig {
+        chainName?: string;
+        chainId: number;
     }
 }
 /// <amd-module name="@scom/scom-commission-claim/store/index.ts" />
@@ -733,6 +747,7 @@ declare module "@scom/scom-commission-claim/utils/token.ts" {
 declare module "@scom/scom-commission-claim/utils/index.ts" {
     export const formatNumber: (value: any, decimals?: number) => string;
     export const formatNumberWithSeparators: (value: number, precision?: number) => string;
+    export const getImageIpfsUrl: (url: string) => string;
     export { getERC20Amount, getTokenBalance, registerSendTxEvents } from "@scom/scom-commission-claim/utils/token.ts";
 }
 /// <amd-module name="@scom/scom-commission-claim/API.ts" />
@@ -799,10 +814,14 @@ declare module "@scom/scom-commission-claim/scconfig.json.ts" {
 /// <amd-module name="@scom/scom-commission-claim" />
 declare module "@scom/scom-commission-claim" {
     import { Module, Container, ControlElement, IDataSchema } from '@ijstech/components';
-    import { IConfig, PageBlock } from "@scom/scom-commission-claim/interface.ts";
+    import { IConfig, INetworkConfig, IWalletPlugin, PageBlock } from "@scom/scom-commission-claim/interface.ts";
     interface ScomCommissionClaimElement extends ControlElement {
         description?: string;
         logo?: string;
+        defaultChainId: number;
+        wallets: IWalletPlugin[];
+        networks: INetworkConfig[];
+        showHeader?: boolean;
     }
     global {
         namespace JSX {
@@ -821,6 +840,7 @@ declare module "@scom/scom-commission-claim" {
         private configDApp;
         private mdAlert;
         private lblAddress;
+        private dappContainer;
         private _data;
         private _oldData;
         private $eventBus;
@@ -836,6 +856,18 @@ declare module "@scom/scom-commission-claim" {
         onWalletConnect: (connected: boolean) => Promise<void>;
         onChainChanged: () => Promise<void>;
         private onSetupPage;
+        get description(): string;
+        set description(value: string);
+        get logo(): string;
+        set logo(value: string);
+        get wallets(): IWalletPlugin[];
+        set wallets(value: IWalletPlugin[]);
+        get networks(): INetworkConfig[];
+        set networks(value: INetworkConfig[]);
+        get showHeader(): boolean;
+        set showHeader(value: boolean);
+        get defaultChainId(): number;
+        set defaultChainId(value: number);
         getData(): IConfig;
         setData(data: IConfig): Promise<void>;
         getTag(): any;
