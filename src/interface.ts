@@ -1,3 +1,4 @@
+import { IClientSideProvider } from '@ijstech/eth-wallet';
 export interface PageBlock {
   // Properties
   getData: () => any;
@@ -24,6 +25,10 @@ export interface PageBlock {
 export interface IConfig {
   description?: string;
   logo?: string;
+  defaultChainId: number;
+  wallets: IWalletPlugin[];
+  networks: INetworkConfig[];
+  showHeader?: boolean;
 }
 
 export interface ITokenObject {
@@ -39,3 +44,14 @@ export interface ITokenObject {
   isWETH?: boolean | null;
   isNew?: boolean | null;
 };
+
+export interface IWalletPlugin {
+  name: string;
+  packageName?: string;
+  provider?: IClientSideProvider;
+}
+
+export interface INetworkConfig {
+  chainName?: string;
+  chainId: number;
+}

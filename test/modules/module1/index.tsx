@@ -23,7 +23,16 @@ export default class Module1 extends Module {
         super.init();
         this.dapp = await ScomCommissionClaim.create({
             description: 'Commission Claim',
-            logo: 'ipfs://bafkreid4rgdbomv7lbboqo7kvmyruwulotrvqslej4jbwmd2ruzkmn4xte'
+            logo: 'ipfs://bafkreid4rgdbomv7lbboqo7kvmyruwulotrvqslej4jbwmd2ruzkmn4xte',
+            "networks": [
+                {
+                  "chainId": 43113
+                }
+              ],
+            "wallets": [
+              { "name": "metamask" }
+            ],
+            defaultChainId: 97
         });
         this.mainStack.appendChild(this.dapp);
     }
