@@ -180,12 +180,18 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
     return this.tag;
   }
 
+  private updateTag(type: 'light'|'dark', value: any) {
+    this.tag[type] = this.tag[type] ?? {};
+    for (let prop in value) {
+      if (value.hasOwnProperty(prop))
+        this.tag[type][prop] = value[prop];
+    }
+  }
+
   async setTag(value: any) {
     const newValue = value || {};
-    for (let prop in newValue) {
-      if (newValue.hasOwnProperty(prop))
-        this.tag[prop] = newValue[prop];
-    }
+    if (newValue.light) this.updateTag('light', newValue.light);
+    if (newValue.dark) this.updateTag('dark', newValue.dark);
     this.updateTheme();
   }
 
@@ -196,8 +202,9 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
   }
 
   private updateTheme() {
-    this.updateStyle('--text-primary', this.tag?.fontColor);
-    this.updateStyle('--background-main', this.tag?.backgroundColor);
+    const themeVar = document.body.style.getPropertyValue('--theme') || 'light';
+    this.updateStyle('--text-primary', this.tag[themeVar]?.fontColor);
+    this.updateStyle('--background-main', this.tag[themeVar]?.backgroundColor);
   }
 
   async edit() {
@@ -249,6 +256,7 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
   async init() {
     this.isReadyCallbackQueued = true;
     super.init();
+    this.initTag();
     // await this.initWalletData();
     const description = this.getAttribute('description', true);
     const logo = this.getAttribute('logo', true);
@@ -261,6 +269,21 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
     await this.onSetupPage(isWalletConnected());
     this.isReadyCallbackQueued = false;
     this.executeReadyCallback();
+  }
+
+  private initTag() {
+    const getColors = (vars: any) => {
+      return {
+        "backgroundColor": vars.background.main,
+        "fontColor": vars.text.primary
+      }
+    }
+    const defaultTag = {
+      dark: getColors(Styles.Theme.darkTheme),
+      light: getColors(Styles.Theme.defaultTheme)
+    }
+    this.oldTag = {...defaultTag};
+    this.setTag(defaultTag);
   }
 
   // private async initWalletData() {
@@ -313,15 +336,35 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
     const themeSchema: IDataSchema = {
       type: 'object',
       properties: {
-        backgroundColor: {
-          type: 'string',
-          format: 'color',
-          readOnly: true
+        dark: {
+          type: 'object',
+          properties: {
+            backgroundColor: {
+              type: 'string',
+              format: 'color',
+              readOnly: true
+            },
+            fontColor: {
+              type: 'string',
+              format: 'color',
+              readOnly: true
+            }
+          }
         },
-        fontColor: {
-          type: 'string',
-          format: 'color',
-          readOnly: true
+        light: {
+          type: 'object',
+          properties: {
+            backgroundColor: {
+              type: 'string',
+              format: 'color',
+              readOnly: true
+            },
+            fontColor: {
+              type: 'string',
+              format: 'color',
+              readOnly: true
+            }
+          }
         }
       }
     }
@@ -347,13 +390,31 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
     const themeSchema: IDataSchema = {
       type: 'object',
       properties: {
-        backgroundColor: {
-          type: 'string',
-          format: 'color'
+        dark: {
+          type: 'object',
+          properties: {
+            backgroundColor: {
+              type: 'string',
+              format: 'color'
+            },
+            fontColor: {
+              type: 'string',
+              format: 'color'
+            }
+          }
         },
-        fontColor: {
-          type: 'string',
-          format: 'color'
+        light: {
+          type: 'object',
+          properties: {
+            backgroundColor: {
+              type: 'string',
+              format: 'color'
+            },
+            fontColor: {
+              type: 'string',
+              format: 'color'
+            }
+          }
         }
       }
     }
@@ -371,7 +432,6 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
             execute: async () => {
               this._oldData = { ...this._data };
               if (userInputData.logo != undefined) this._data.logo = userInputData.logo;
-              console.log(userInputData)
               if (userInputData.description != undefined) this._data.description = userInputData.description;
               this.configDApp.data = this._data;
               this.setData(this._data);

@@ -871,6 +871,7 @@ declare module "@scom/scom-commission-claim" {
         getData(): IConfig;
         setData(data: IConfig): Promise<void>;
         getTag(): any;
+        private updateTag;
         setTag(value: any): Promise<void>;
         private updateStyle;
         private updateTheme;
@@ -881,6 +882,7 @@ declare module "@scom/scom-commission-claim" {
         validate(): boolean;
         private refreshDApp;
         init(): Promise<void>;
+        private initTag;
         private refetchClaimAmount;
         private selectToken;
         private onClaim;
