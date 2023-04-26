@@ -1305,12 +1305,20 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
         getTag() {
             return this.tag;
         }
+        updateTag(type, value) {
+            var _a;
+            this.tag[type] = (_a = this.tag[type]) !== null && _a !== void 0 ? _a : {};
+            for (let prop in value) {
+                if (value.hasOwnProperty(prop))
+                    this.tag[type][prop] = value[prop];
+            }
+        }
         async setTag(value) {
             const newValue = value || {};
-            for (let prop in newValue) {
-                if (newValue.hasOwnProperty(prop))
-                    this.tag[prop] = newValue[prop];
-            }
+            if (newValue.light)
+                this.updateTag('light', newValue.light);
+            if (newValue.dark)
+                this.updateTag('dark', newValue.dark);
             this.updateTheme();
         }
         updateStyle(name, value) {
@@ -1320,8 +1328,9 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
         }
         updateTheme() {
             var _a, _b;
-            this.updateStyle('--text-primary', (_a = this.tag) === null || _a === void 0 ? void 0 : _a.fontColor);
-            this.updateStyle('--background-main', (_b = this.tag) === null || _b === void 0 ? void 0 : _b.backgroundColor);
+            const themeVar = document.body.style.getPropertyValue('--theme') || 'light';
+            this.updateStyle('--text-primary', (_a = this.tag[themeVar]) === null || _a === void 0 ? void 0 : _a.fontColor);
+            this.updateStyle('--background-main', (_b = this.tag[themeVar]) === null || _b === void 0 ? void 0 : _b.backgroundColor);
         }
         async edit() {
             this.gridDApp.visible = false;
@@ -1366,6 +1375,7 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
         async init() {
             this.isReadyCallbackQueued = true;
             super.init();
+            this.initTag();
             // await this.initWalletData();
             const description = this.getAttribute('description', true);
             const logo = this.getAttribute('logo', true);
@@ -1377,6 +1387,20 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
             await this.onSetupPage(index_6.isWalletConnected());
             this.isReadyCallbackQueued = false;
             this.executeReadyCallback();
+        }
+        initTag() {
+            const getColors = (vars) => {
+                return {
+                    "backgroundColor": vars.background.main,
+                    "fontColor": vars.text.primary
+                };
+            };
+            const defaultTag = {
+                dark: getColors(components_7.Styles.Theme.darkTheme),
+                light: getColors(components_7.Styles.Theme.defaultTheme)
+            };
+            this.oldTag = Object.assign({}, defaultTag);
+            this.setTag(defaultTag);
         }
         // private async initWalletData() {
         //   const selectedProvider = localStorage.getItem('walletProvider') as WalletPlugin;
@@ -1424,15 +1448,35 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
             const themeSchema = {
                 type: 'object',
                 properties: {
-                    backgroundColor: {
-                        type: 'string',
-                        format: 'color',
-                        readOnly: true
+                    dark: {
+                        type: 'object',
+                        properties: {
+                            backgroundColor: {
+                                type: 'string',
+                                format: 'color',
+                                readOnly: true
+                            },
+                            fontColor: {
+                                type: 'string',
+                                format: 'color',
+                                readOnly: true
+                            }
+                        }
                     },
-                    fontColor: {
-                        type: 'string',
-                        format: 'color',
-                        readOnly: true
+                    light: {
+                        type: 'object',
+                        properties: {
+                            backgroundColor: {
+                                type: 'string',
+                                format: 'color',
+                                readOnly: true
+                            },
+                            fontColor: {
+                                type: 'string',
+                                format: 'color',
+                                readOnly: true
+                            }
+                        }
                     }
                 }
             };
@@ -1455,13 +1499,31 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
             const themeSchema = {
                 type: 'object',
                 properties: {
-                    backgroundColor: {
-                        type: 'string',
-                        format: 'color'
+                    dark: {
+                        type: 'object',
+                        properties: {
+                            backgroundColor: {
+                                type: 'string',
+                                format: 'color'
+                            },
+                            fontColor: {
+                                type: 'string',
+                                format: 'color'
+                            }
+                        }
                     },
-                    fontColor: {
-                        type: 'string',
-                        format: 'color'
+                    light: {
+                        type: 'object',
+                        properties: {
+                            backgroundColor: {
+                                type: 'string',
+                                format: 'color'
+                            },
+                            fontColor: {
+                                type: 'string',
+                                format: 'color'
+                            }
+                        }
                     }
                 }
             };
@@ -1478,7 +1540,6 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                                 this._oldData = Object.assign({}, this._data);
                                 if (userInputData.logo != undefined)
                                     this._data.logo = userInputData.logo;
-                                console.log(userInputData);
                                 if (userInputData.description != undefined)
                                     this._data.description = userInputData.description;
                                 this.configDApp.data = this._data;
