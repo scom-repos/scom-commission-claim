@@ -81,9 +81,7 @@ export class TokenSelection extends Module {
         this.token = undefined;
       }
     }
-    if (this.token) {
-      this.updateTokenButton(this.token);
-    }
+    this.updateTokenButton(this.token);
   }
 
   private registerEvent() {
@@ -160,7 +158,7 @@ export class TokenSelection extends Module {
 
   private updateTokenButton(token?: ITokenObject) {
     const chainId = getChainId();
-    if (token) {
+    if (token && isWalletConnected()) {
       const tokenIconPath = tokenAssets.tokenPath(token, chainId);
       const icon = new Icon(this.btnTokens, {
         width: 28,
