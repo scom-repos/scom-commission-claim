@@ -14,7 +14,7 @@ import {
   ControlElement,
   IDataSchema
 } from '@ijstech/components';
-import { IConfig, INetworkConfig, ITokenObject, IWalletPlugin, PageBlock } from './interface';
+import { IConfig, INetworkConfig, ITokenObject, IWalletPlugin } from './interface';
 import { EventId, getContractAddress, setDataFromSCConfig } from './store/index';
 import { getChainId, isWalletConnected } from './wallet/index';
 import Config from './config/index';
@@ -47,7 +47,7 @@ declare global {
 
 @customModule
 @customElements('i-scom-commission-claim')
-export default class ScomCommissionClaim extends Module implements PageBlock {
+export default class ScomCommissionClaim extends Module {
   private imgLogo: Image;
   private markdownDescription: Markdown;
   private gridDApp: GridLayout;
@@ -98,16 +98,11 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
     this.$eventBus.register(this, EventId.chainChanged, this.onChainChanged);
   }
 
-  onWalletConnect = async (connected: boolean) => {
-    let chainId = getChainId();
-    if (connected && !chainId) {
-      await this.onSetupPage(true);
-    } else {
-      await this.onSetupPage(connected);
-    }
+  private onWalletConnect = async (connected: boolean) => {
+    await this.onSetupPage((connected && !getChainId()) || connected);
   }
 
-  onChainChanged = async () => {
+  private onChainChanged = async () => {
     await this.onSetupPage(true);
   }
 
@@ -165,18 +160,18 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
     this._data.defaultChainId = value;
   }
 
-  getData() {
+  private getData() {
     return this._data;
   }
 
-  async setData(data: IConfig) {
+  private async setData(data: IConfig) {
     this._data = data;
     // if (!this.configDApp.isConnected) await this.configDApp.ready();
     if (this.configDApp.isConnected) this.configDApp.data = data;
     await this.refreshDApp();
   }
 
-  getTag() {
+  private getTag() {
     return this.tag;
   }
 
@@ -188,10 +183,16 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
     }
   }
 
-  async setTag(value: any) {
+  private async setTag(value: any) {
     const newValue = value || {};
-    if (newValue.light) this.updateTag('light', newValue.light);
-    if (newValue.dark) this.updateTag('dark', newValue.dark);
+    for (let prop in newValue) {
+      if (newValue.hasOwnProperty(prop)) {
+        if (prop === 'light' || prop === 'dark')
+          this.updateTag(prop, newValue[prop]);
+        else
+          this.tag[prop] = newValue[prop];
+      }
+    }
     this.updateTheme();
   }
 
@@ -207,39 +208,39 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
     this.updateStyle('--background-main', this.tag[themeVar]?.backgroundColor);
   }
 
-  async edit() {
-    this.gridDApp.visible = false;
-    this.configDApp.visible = true;
-  }
+  // private async edit() {
+  //   this.gridDApp.visible = false;
+  //   this.configDApp.visible = true;
+  // }
 
-  async confirm() {
-    this.gridDApp.visible = true;
-    this.configDApp.visible = false;
-    this._data = this.configDApp.data;
-    this.refreshDApp();
-  }
+  // private async confirm() {
+  //   this.gridDApp.visible = true;
+  //   this.configDApp.visible = false;
+  //   this._data = this.configDApp.data;
+  //   this.refreshDApp();
+  // }
 
-  async discard() {
-    this.gridDApp.visible = true;
-    this.configDApp.visible = false;
-  }
+  // private async discard() {
+  //   this.gridDApp.visible = true;
+  //   this.configDApp.visible = false;
+  // }
 
-  async config() { }
+  // private async config() { }
 
-  validate() {
-    const data = this.configDApp.data;
-    if (
-      !data
-    ) {
-      this.mdAlert.message = {
-        status: 'error',
-        content: 'Required field is missing.'
-      };
-      this.mdAlert.showModal();
-      return false;
-    }
-    return true;
-  }
+  // private validate() {
+  //   const data = this.configDApp.data;
+  //   if (
+  //     !data
+  //   ) {
+  //     this.mdAlert.message = {
+  //       status: 'error',
+  //       content: 'Required field is missing.'
+  //     };
+  //     this.mdAlert.showModal();
+  //     return false;
+  //   }
+  //   return true;
+  // }
 
   private async refreshDApp() {
     this.imgLogo.url = getImageIpfsUrl(this._data.logo);
@@ -282,7 +283,7 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
       dark: getColors(Styles.Theme.darkTheme),
       light: getColors(Styles.Theme.defaultTheme)
     }
-    this.oldTag = {...defaultTag};
+    this.oldTag = JSON.parse(JSON.stringify(defaultTag));
     this.setTag(defaultTag);
   }
 
@@ -323,7 +324,7 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
     });
   }
 
-  getEmbedderActions() {
+  private getEmbedderActions() {
     const propertiesSchema: IDataSchema = {
       type: 'object',
       properties: {
@@ -372,7 +373,7 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
     return this._getActions(propertiesSchema, themeSchema);
   }
 
-  getActions() {
+  private getActions() {
     const propertiesSchema: IDataSchema = {
       type: 'object',
       properties: {
@@ -422,7 +423,7 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
     return this._getActions(propertiesSchema, themeSchema);
   }
 
-  _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema) {
+  private _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema) {
     const actions = [
       {
         name: 'Settings',
@@ -455,14 +456,14 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
           return {
             execute: async () => {
               if (!userInputData) return;
-              this.oldTag = { ...this.tag };
+              this.oldTag = JSON.parse(JSON.stringify(this.tag));
               if (builder) builder.setTag(userInputData);
               else this.setTag(userInputData);
               if (this.dappContainer) this.dappContainer.setTag(userInputData);
             },
             undo: () => {
               if (!userInputData) return;
-              this.tag = { ...this.oldTag };
+              this.tag = JSON.parse(JSON.stringify(this.oldTag));
               if (builder) builder.setTag(this.tag);
               else this.setTag(this.tag);
               if (this.dappContainer) this.dappContainer.setTag(this.tag);
@@ -474,6 +475,29 @@ export default class ScomCommissionClaim extends Module implements PageBlock {
       }
     ]
     return actions
+  }
+
+  getConfigurators() {
+    return [
+      {
+        name: 'Builder Configurator',
+        target: 'Builders',
+        getActions: this.getActions.bind(this),
+        getData: this.getData.bind(this),
+        setData: this.setData.bind(this),
+        getTag: this.getTag.bind(this),
+        setTag: this.setTag.bind(this)
+      },
+      {
+        name: 'Emdedder Configurator',
+        target: 'Embedders',
+        getActions: this.getEmbedderActions.bind(this),
+        getData: this.getData.bind(this),
+        setData: this.setData.bind(this),
+        getTag: this.getTag.bind(this),
+        setTag: this.setTag.bind(this)
+      }
+    ]
   }
 
   render() {

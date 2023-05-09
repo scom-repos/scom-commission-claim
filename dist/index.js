@@ -260,9 +260,7 @@ define("@scom/scom-commission-claim/token-selection/index.tsx", ["require", "exp
                     this.token = undefined;
                 }
             }
-            if (this.token) {
-                this.updateTokenButton(this.token);
-            }
+            this.updateTokenButton(this.token);
         }
         registerEvent() {
             this.$eventBus.register(this, "isWalletConnected" /* IsWalletConnected */, () => this.onSetup());
@@ -308,7 +306,7 @@ define("@scom/scom-commission-claim/token-selection/index.tsx", ["require", "exp
         }
         updateTokenButton(token) {
             const chainId = index_1.getChainId();
-            if (token) {
+            if (token && index_1.isWalletConnected()) {
                 const tokenIconPath = scom_token_list_1.assets.tokenPath(token, chainId);
                 const icon = new components_4.Icon(this.btnTokens, {
                     width: 28,
@@ -1214,13 +1212,7 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
             this.oldTag = {};
             this.defaultEdit = true;
             this.onWalletConnect = async (connected) => {
-                let chainId = index_6.getChainId();
-                if (connected && !chainId) {
-                    await this.onSetupPage(true);
-                }
-                else {
-                    await this.onSetupPage(connected);
-                }
+                await this.onSetupPage((connected && !index_6.getChainId()) || connected);
             };
             this.onChainChanged = async () => {
                 await this.onSetupPage(true);
@@ -1399,7 +1391,7 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                 dark: getColors(components_7.Styles.Theme.darkTheme),
                 light: getColors(components_7.Styles.Theme.defaultTheme)
             };
-            this.oldTag = Object.assign({}, defaultTag);
+            this.oldTag = JSON.parse(JSON.stringify(defaultTag));
             this.setTag(defaultTag);
         }
         // private async initWalletData() {
@@ -1567,7 +1559,7 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                             execute: async () => {
                                 if (!userInputData)
                                     return;
-                                this.oldTag = Object.assign({}, this.tag);
+                                this.oldTag = JSON.parse(JSON.stringify(this.tag));
                                 if (builder)
                                     builder.setTag(userInputData);
                                 else
@@ -1578,7 +1570,7 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                             undo: () => {
                                 if (!userInputData)
                                     return;
-                                this.tag = Object.assign({}, this.oldTag);
+                                this.tag = JSON.parse(JSON.stringify(this.oldTag));
                                 if (builder)
                                     builder.setTag(this.tag);
                                 else
@@ -1593,6 +1585,28 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                 }
             ];
             return actions;
+        }
+        getConfigurators() {
+            return [
+                {
+                    name: 'Builder Configurator',
+                    target: 'Builders',
+                    getActions: this.getActions.bind(this),
+                    getData: this.getData.bind(this),
+                    setData: this.setData.bind(this),
+                    getTag: this.getTag.bind(this),
+                    setTag: this.setTag.bind(this)
+                },
+                {
+                    name: 'Emdedder Configurator',
+                    target: 'Embedders',
+                    getActions: this.getEmbedderActions.bind(this),
+                    getData: this.getData.bind(this),
+                    setData: this.setData.bind(this),
+                    getTag: this.getTag.bind(this),
+                    setTag: this.setTag.bind(this)
+                }
+            ];
         }
         render() {
             return (this.$render("i-scom-dapp-container", { id: "dappContainer" },

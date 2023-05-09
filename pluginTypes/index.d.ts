@@ -813,8 +813,8 @@ declare module "@scom/scom-commission-claim/scconfig.json.ts" {
 }
 /// <amd-module name="@scom/scom-commission-claim" />
 declare module "@scom/scom-commission-claim" {
-    import { Module, Container, ControlElement, IDataSchema } from '@ijstech/components';
-    import { IConfig, INetworkConfig, IWalletPlugin, PageBlock } from "@scom/scom-commission-claim/interface.ts";
+    import { Module, Container, ControlElement } from '@ijstech/components';
+    import { INetworkConfig, IWalletPlugin } from "@scom/scom-commission-claim/interface.ts";
     interface ScomCommissionClaimElement extends ControlElement {
         description?: string;
         logo?: string;
@@ -830,7 +830,7 @@ declare module "@scom/scom-commission-claim" {
             }
         }
     }
-    export default class ScomCommissionClaim extends Module implements PageBlock {
+    export default class ScomCommissionClaim extends Module {
         private imgLogo;
         private markdownDescription;
         private gridDApp;
@@ -853,8 +853,8 @@ declare module "@scom/scom-commission-claim" {
         constructor(parent?: Container, options?: any);
         static create(options?: ScomCommissionClaimElement, parent?: Container): Promise<ScomCommissionClaim>;
         private registerEvent;
-        onWalletConnect: (connected: boolean) => Promise<void>;
-        onChainChanged: () => Promise<void>;
+        private onWalletConnect;
+        private onChainChanged;
         private onSetupPage;
         get description(): string;
         set description(value: string);
@@ -868,53 +868,35 @@ declare module "@scom/scom-commission-claim" {
         set showHeader(value: boolean);
         get defaultChainId(): number;
         set defaultChainId(value: number);
-        getData(): IConfig;
-        setData(data: IConfig): Promise<void>;
-        getTag(): any;
+        private getData;
+        private setData;
+        private getTag;
         private updateTag;
-        setTag(value: any): Promise<void>;
+        private setTag;
         private updateStyle;
         private updateTheme;
-        edit(): Promise<void>;
-        confirm(): Promise<void>;
-        discard(): Promise<void>;
-        config(): Promise<void>;
-        validate(): boolean;
+        private edit;
+        private confirm;
+        private discard;
+        private config;
+        private validate;
         private refreshDApp;
         init(): Promise<void>;
         private initTag;
         private refetchClaimAmount;
         private selectToken;
         private onClaim;
-        getEmbedderActions(): {
+        private getEmbedderActions;
+        private getActions;
+        private _getActions;
+        getConfigurators(): {
             name: string;
-            icon: string;
-            command: (builder: any, userInputData: any) => {
-                execute: () => Promise<void>;
-                undo: () => void;
-                redo: () => void;
-            };
-            userInputDataSchema: IDataSchema;
-        }[];
-        getActions(): {
-            name: string;
-            icon: string;
-            command: (builder: any, userInputData: any) => {
-                execute: () => Promise<void>;
-                undo: () => void;
-                redo: () => void;
-            };
-            userInputDataSchema: IDataSchema;
-        }[];
-        _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema): {
-            name: string;
-            icon: string;
-            command: (builder: any, userInputData: any) => {
-                execute: () => Promise<void>;
-                undo: () => void;
-                redo: () => void;
-            };
-            userInputDataSchema: IDataSchema;
+            target: string;
+            getActions: any;
+            getData: any;
+            setData: any;
+            getTag: any;
+            setTag: any;
         }[];
         render(): any;
     }
