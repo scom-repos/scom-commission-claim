@@ -185,8 +185,14 @@ export default class ScomCommissionClaim extends Module {
 
   private async setTag(value: any) {
     const newValue = value || {};
-    if (newValue.light) this.updateTag('light', newValue.light);
-    if (newValue.dark) this.updateTag('dark', newValue.dark);
+    for (let prop in newValue) {
+      if (newValue.hasOwnProperty(prop)) {
+        if (prop === 'light' || prop === 'dark')
+          this.updateTag(prop, newValue[prop]);
+        else
+          this.tag[prop] = newValue[prop];
+      }
+    }
     this.updateTheme();
   }
 
@@ -202,39 +208,39 @@ export default class ScomCommissionClaim extends Module {
     this.updateStyle('--background-main', this.tag[themeVar]?.backgroundColor);
   }
 
-  private async edit() {
-    this.gridDApp.visible = false;
-    this.configDApp.visible = true;
-  }
+  // private async edit() {
+  //   this.gridDApp.visible = false;
+  //   this.configDApp.visible = true;
+  // }
 
-  private async confirm() {
-    this.gridDApp.visible = true;
-    this.configDApp.visible = false;
-    this._data = this.configDApp.data;
-    this.refreshDApp();
-  }
+  // private async confirm() {
+  //   this.gridDApp.visible = true;
+  //   this.configDApp.visible = false;
+  //   this._data = this.configDApp.data;
+  //   this.refreshDApp();
+  // }
 
-  private async discard() {
-    this.gridDApp.visible = true;
-    this.configDApp.visible = false;
-  }
+  // private async discard() {
+  //   this.gridDApp.visible = true;
+  //   this.configDApp.visible = false;
+  // }
 
-  private async config() { }
+  // private async config() { }
 
-  private validate() {
-    const data = this.configDApp.data;
-    if (
-      !data
-    ) {
-      this.mdAlert.message = {
-        status: 'error',
-        content: 'Required field is missing.'
-      };
-      this.mdAlert.showModal();
-      return false;
-    }
-    return true;
-  }
+  // private validate() {
+  //   const data = this.configDApp.data;
+  //   if (
+  //     !data
+  //   ) {
+  //     this.mdAlert.message = {
+  //       status: 'error',
+  //       content: 'Required field is missing.'
+  //     };
+  //     this.mdAlert.showModal();
+  //     return false;
+  //   }
+  //   return true;
+  // }
 
   private async refreshDApp() {
     this.imgLogo.url = getImageIpfsUrl(this._data.logo);
