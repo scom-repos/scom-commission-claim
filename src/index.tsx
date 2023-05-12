@@ -193,7 +193,7 @@ export default class ScomCommissionClaim extends Module {
   }
 
   private updateTheme() {
-    const themeVar = document.body.style.getPropertyValue('--theme') || 'light';
+    const themeVar = this.dappContainer?.theme || 'light';
     this.updateStyle('--text-primary', this.tag[themeVar]?.fontColor);
     this.updateStyle('--background-main', this.tag[themeVar]?.backgroundColor);
   }

@@ -1290,10 +1290,10 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                 this.style.removeProperty(name);
         }
         updateTheme() {
-            var _a, _b;
-            const themeVar = document.body.style.getPropertyValue('--theme') || 'light';
-            this.updateStyle('--text-primary', (_a = this.tag[themeVar]) === null || _a === void 0 ? void 0 : _a.fontColor);
-            this.updateStyle('--background-main', (_b = this.tag[themeVar]) === null || _b === void 0 ? void 0 : _b.backgroundColor);
+            var _a, _b, _c;
+            const themeVar = ((_a = this.dappContainer) === null || _a === void 0 ? void 0 : _a.theme) || 'light';
+            this.updateStyle('--text-primary', (_b = this.tag[themeVar]) === null || _b === void 0 ? void 0 : _b.fontColor);
+            this.updateStyle('--background-main', (_c = this.tag[themeVar]) === null || _c === void 0 ? void 0 : _c.backgroundColor);
         }
         // private async edit() {
         //   this.gridDApp.visible = false;
