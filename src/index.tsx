@@ -1,7 +1,6 @@
 import {
   Module,
   customModule,
-  GridLayout,
   Markdown,
   Image,
   Label,
@@ -50,7 +49,6 @@ declare global {
 export default class ScomCommissionClaim extends Module {
   private imgLogo: Image;
   private markdownDescription: Markdown;
-  private gridDApp: GridLayout;
   private lbClaimable: Label;
   private btnClaim: Button;
   private tokenSelection: TokenSelection;
@@ -64,14 +62,8 @@ export default class ScomCommissionClaim extends Module {
     wallets: [],
     networks: []
   };
-  private _oldData: IConfig = {
-    defaultChainId: 0,
-    wallets: [],
-    networks: []
-  };
   private $eventBus: IEventBus;
   tag: any = {};
-  private oldTag: any = {};
   defaultEdit: boolean = true;
   readonly onConfirm: () => Promise<void>;
   readonly onDiscard: () => Promise<void>;
@@ -201,7 +193,7 @@ export default class ScomCommissionClaim extends Module {
   }
 
   private updateTheme() {
-    const themeVar = document.body.style.getPropertyValue('--theme') || 'light';
+    const themeVar = this.dappContainer?.theme || 'light';
     this.updateStyle('--text-primary', this.tag[themeVar]?.fontColor);
     this.updateStyle('--background-main', this.tag[themeVar]?.backgroundColor);
   }
@@ -281,7 +273,6 @@ export default class ScomCommissionClaim extends Module {
       dark: getColors(Styles.Theme.darkTheme),
       light: getColors(Styles.Theme.defaultTheme)
     }
-    this.oldTag = JSON.parse(JSON.stringify(defaultTag));
     this.setTag(defaultTag);
   }
 
@@ -427,20 +418,22 @@ export default class ScomCommissionClaim extends Module {
         name: 'Settings',
         icon: 'cog',
         command: (builder: any, userInputData: any) => {
+          let _oldData: IConfig = {
+            defaultChainId: 0,
+            wallets: [],
+            networks: []
+          };
           return {
             execute: async () => {
-              this._oldData = { ...this._data };
+              _oldData = { ...this._data };
               if (userInputData.logo != undefined) this._data.logo = userInputData.logo;
               if (userInputData.description != undefined) this._data.description = userInputData.description;
-              this.configDApp.data = this._data;
               this.setData(this._data);
               if (builder?.setData) builder.setData(this._data);
             },
             undo: () => {
-              this._data = { ...this._oldData };
-              this.configDApp.data = this._data;
-              this.setData(this._data);
-              if (builder?.setData) builder.setData(this._data);
+              this.setData(_oldData);
+              if (builder?.setData) builder.setData(_oldData);
             },
             redo: () => { }
           }
@@ -451,17 +444,18 @@ export default class ScomCommissionClaim extends Module {
         name: 'Theme Settings',
         icon: 'palette',
         command: (builder: any, userInputData: any) => {
+          let oldTag = {};
           return {
             execute: async () => {
               if (!userInputData) return;
-              this.oldTag = JSON.parse(JSON.stringify(this.tag));
+              oldTag = JSON.parse(JSON.stringify(this.tag));
               if (builder) builder.setTag(userInputData);
               else this.setTag(userInputData);
               if (this.dappContainer) this.dappContainer.setTag(userInputData);
             },
             undo: () => {
               if (!userInputData) return;
-              this.tag = JSON.parse(JSON.stringify(this.oldTag));
+              this.tag = JSON.parse(JSON.stringify(oldTag));
               if (builder) builder.setTag(this.tag);
               else this.setTag(this.tag);
               if (this.dappContainer) this.dappContainer.setTag(this.tag);
@@ -482,7 +476,10 @@ export default class ScomCommissionClaim extends Module {
         target: 'Builders',
         getActions: this.getActions.bind(this),
         getData: this.getData.bind(this),
-        setData: this.setData.bind(this),
+        setData: async (data: IConfig) => {
+          const defaultData = configData.defaultBuilderData;
+          await this.setData({...defaultData, ...data});
+        },
         getTag: this.getTag.bind(this),
         setTag: this.setTag.bind(this)
       },

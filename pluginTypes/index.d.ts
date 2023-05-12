@@ -758,55 +758,26 @@ declare module "@scom/scom-commission-claim/API.ts" {
     function claim(token: ITokenObject, callback?: any, confirmationCallback?: any): Promise<import("@ijstech/eth-contract").TransactionReceipt>;
     export { getClaimAmount, claim };
 }
-/// <amd-module name="@scom/scom-commission-claim/scconfig.json.ts" />
-declare module "@scom/scom-commission-claim/scconfig.json.ts" {
+/// <amd-module name="@scom/scom-commission-claim/data.json.ts" />
+declare module "@scom/scom-commission-claim/data.json.ts" {
     const _default_3: {
-        env: string;
-        logo: string;
-        main: string;
-        assets: string;
-        moduleDir: string;
-        modules: {
-            "./assets": {
-                path: string;
-            };
-            "./interface": {
-                path: string;
-            };
-            "./utils": {
-                path: string;
-            };
-            "./store": {
-                path: string;
-            };
-            "./wallet": {
-                path: string;
-            };
-            "./token-selection": {
-                path: string;
-            };
-            "./alert": {
-                path: string;
-            };
-            "./config": {
-                path: string;
-            };
-            "./main": {
-                path: string;
-            };
-        };
-        dependencies: {
-            "@ijstech/eth-contract": string;
-            "@scom/scom-product-contract": string;
-            "@scom/scom-commission-proxy-contract": string;
-            "@scom/scom-token-list": string;
-        };
         contractInfo: {
             "43113": {
                 Proxy: {
                     address: string;
                 };
             };
+        };
+        defaultBuilderData: {
+            description: string;
+            logo: string;
+            networks: {
+                chainId: number;
+            }[];
+            wallets: {
+                name: string;
+            }[];
+            defaultChainId: number;
         };
     };
     export default _default_3;
@@ -833,7 +804,6 @@ declare module "@scom/scom-commission-claim" {
     export default class ScomCommissionClaim extends Module {
         private imgLogo;
         private markdownDescription;
-        private gridDApp;
         private lbClaimable;
         private btnClaim;
         private tokenSelection;
@@ -842,10 +812,8 @@ declare module "@scom/scom-commission-claim" {
         private lblAddress;
         private dappContainer;
         private _data;
-        private _oldData;
         private $eventBus;
         tag: any;
-        private oldTag;
         defaultEdit: boolean;
         readonly onConfirm: () => Promise<void>;
         readonly onDiscard: () => Promise<void>;

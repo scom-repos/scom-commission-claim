@@ -1137,61 +1137,36 @@ define("@scom/scom-commission-claim/API.ts", ["require", "exports", "@ijstech/et
     }
     exports.claim = claim;
 });
-define("@scom/scom-commission-claim/scconfig.json.ts", ["require", "exports"], function (require, exports) {
+define("@scom/scom-commission-claim/data.json.ts", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    ///<amd-module name='@scom/scom-commission-claim/scconfig.json.ts'/> 
+    ///<amd-module name='@scom/scom-commission-claim/data.json.ts'/> 
     exports.default = {
-        "env": "testnet",
-        "logo": "logo",
-        "main": "./main",
-        "assets": "./assets",
-        "moduleDir": "modules",
-        "modules": {
-            "./assets": {
-                "path": "assets"
-            },
-            "./interface": {
-                "path": "interface"
-            },
-            "./utils": {
-                "path": "utils"
-            },
-            "./store": {
-                "path": "store"
-            },
-            "./wallet": {
-                "path": "wallet"
-            },
-            "./token-selection": {
-                "path": "token-selection"
-            },
-            "./alert": {
-                "path": "alert"
-            },
-            "./config": {
-                "path": "config"
-            },
-            "./main": {
-                "path": "main"
-            }
-        },
-        "dependencies": {
-            "@ijstech/eth-contract": "*",
-            "@scom/scom-product-contract": "*",
-            "@scom/scom-commission-proxy-contract": "*",
-            "@scom/scom-token-list": "*"
-        },
         "contractInfo": {
             "43113": {
                 "Proxy": {
                     "address": "0x7f1EAB0db83c02263539E3bFf99b638E61916B96"
                 }
             }
+        },
+        "defaultBuilderData": {
+            "description": "",
+            "logo": "ipfs://bafkreicdwbtx5niyhfzctxvxnwxjt3qfb3kyotrdpkdo26wky33lnt7lci",
+            "networks": [
+                {
+                    "chainId": 43113
+                }
+            ],
+            "wallets": [
+                {
+                    "name": "metamask"
+                }
+            ],
+            "defaultChainId": 43113
         }
     };
 });
-define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/components", "@scom/scom-commission-claim/store/index.ts", "@scom/scom-commission-claim/wallet/index.ts", "@scom/scom-commission-claim/index.css.ts", "@scom/scom-commission-claim/API.ts", "@scom/scom-commission-claim/scconfig.json.ts", "@scom/scom-commission-claim/utils/index.ts"], function (require, exports, components_7, index_5, index_6, index_css_3, API_1, scconfig_json_1, index_7) {
+define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/components", "@scom/scom-commission-claim/store/index.ts", "@scom/scom-commission-claim/wallet/index.ts", "@scom/scom-commission-claim/index.css.ts", "@scom/scom-commission-claim/API.ts", "@scom/scom-commission-claim/data.json.ts", "@scom/scom-commission-claim/utils/index.ts"], function (require, exports, components_7, index_5, index_6, index_css_3, API_1, data_json_1, index_7) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     const Theme = components_7.Styles.Theme.ThemeVars;
@@ -1203,13 +1178,7 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                 wallets: [],
                 networks: []
             };
-            this._oldData = {
-                defaultChainId: 0,
-                wallets: [],
-                networks: []
-            };
             this.tag = {};
-            this.oldTag = {};
             this.defaultEdit = true;
             this.onWalletConnect = async (connected) => {
                 await this.onSetupPage((connected && !index_6.getChainId()) || connected);
@@ -1217,7 +1186,7 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
             this.onChainChanged = async () => {
                 await this.onSetupPage(true);
             };
-            index_5.setDataFromConfig(scconfig_json_1.default);
+            index_5.setDataFromConfig(data_json_1.default);
             this.$eventBus = components_7.application.EventBus;
             this.registerEvent();
         }
@@ -1321,10 +1290,10 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                 this.style.removeProperty(name);
         }
         updateTheme() {
-            var _a, _b;
-            const themeVar = document.body.style.getPropertyValue('--theme') || 'light';
-            this.updateStyle('--text-primary', (_a = this.tag[themeVar]) === null || _a === void 0 ? void 0 : _a.fontColor);
-            this.updateStyle('--background-main', (_b = this.tag[themeVar]) === null || _b === void 0 ? void 0 : _b.backgroundColor);
+            var _a, _b, _c;
+            const themeVar = ((_a = this.dappContainer) === null || _a === void 0 ? void 0 : _a.theme) || 'light';
+            this.updateStyle('--text-primary', (_b = this.tag[themeVar]) === null || _b === void 0 ? void 0 : _b.fontColor);
+            this.updateStyle('--background-main', (_c = this.tag[themeVar]) === null || _c === void 0 ? void 0 : _c.backgroundColor);
         }
         // private async edit() {
         //   this.gridDApp.visible = false;
@@ -1395,7 +1364,6 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                 dark: getColors(components_7.Styles.Theme.darkTheme),
                 light: getColors(components_7.Styles.Theme.defaultTheme)
             };
-            this.oldTag = JSON.parse(JSON.stringify(defaultTag));
             this.setTag(defaultTag);
         }
         // private async initWalletData() {
@@ -1531,24 +1499,26 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                     name: 'Settings',
                     icon: 'cog',
                     command: (builder, userInputData) => {
+                        let _oldData = {
+                            defaultChainId: 0,
+                            wallets: [],
+                            networks: []
+                        };
                         return {
                             execute: async () => {
-                                this._oldData = Object.assign({}, this._data);
+                                _oldData = Object.assign({}, this._data);
                                 if (userInputData.logo != undefined)
                                     this._data.logo = userInputData.logo;
                                 if (userInputData.description != undefined)
                                     this._data.description = userInputData.description;
-                                this.configDApp.data = this._data;
                                 this.setData(this._data);
                                 if (builder === null || builder === void 0 ? void 0 : builder.setData)
                                     builder.setData(this._data);
                             },
                             undo: () => {
-                                this._data = Object.assign({}, this._oldData);
-                                this.configDApp.data = this._data;
-                                this.setData(this._data);
+                                this.setData(_oldData);
                                 if (builder === null || builder === void 0 ? void 0 : builder.setData)
-                                    builder.setData(this._data);
+                                    builder.setData(_oldData);
                             },
                             redo: () => { }
                         };
@@ -1559,11 +1529,12 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                     name: 'Theme Settings',
                     icon: 'palette',
                     command: (builder, userInputData) => {
+                        let oldTag = {};
                         return {
                             execute: async () => {
                                 if (!userInputData)
                                     return;
-                                this.oldTag = JSON.parse(JSON.stringify(this.tag));
+                                oldTag = JSON.parse(JSON.stringify(this.tag));
                                 if (builder)
                                     builder.setTag(userInputData);
                                 else
@@ -1574,7 +1545,7 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                             undo: () => {
                                 if (!userInputData)
                                     return;
-                                this.tag = JSON.parse(JSON.stringify(this.oldTag));
+                                this.tag = JSON.parse(JSON.stringify(oldTag));
                                 if (builder)
                                     builder.setTag(this.tag);
                                 else
@@ -1597,7 +1568,10 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                     target: 'Builders',
                     getActions: this.getActions.bind(this),
                     getData: this.getData.bind(this),
-                    setData: this.setData.bind(this),
+                    setData: async (data) => {
+                        const defaultData = data_json_1.default.defaultBuilderData;
+                        await this.setData(Object.assign(Object.assign({}, defaultData), data));
+                    },
                     getTag: this.getTag.bind(this),
                     setTag: this.setTag.bind(this)
                 },
