@@ -15,7 +15,7 @@ import {
   IDataSchema
 } from '@ijstech/components';
 import { IConfig, INetworkConfig, ITokenObject, IWalletPlugin } from './interface';
-import { EventId, getContractAddress, setDataFromSCConfig } from './store/index';
+import { EventId, getContractAddress, setDataFromConfig } from './store/index';
 import { getChainId, isWalletConnected } from './wallet/index';
 import Config from './config/index';
 import { TokenSelection } from './token-selection/index';
@@ -23,7 +23,7 @@ import { imageStyle, markdownStyle, tokenSelectionStyle } from './index.css';
 import { Alert } from './alert/index';
 import { claim, getClaimAmount } from './API';
 import ScomDappContainer from '@scom/scom-dapp-container';
-import scconfig from './scconfig.json';
+import configData from './data.json';
 import { getImageIpfsUrl } from './utils/index';
 
 const Theme = Styles.Theme.ThemeVars;
@@ -79,9 +79,7 @@ export default class ScomCommissionClaim extends Module {
 
   constructor(parent?: Container, options?: any) {
     super(parent, options);
-    if (options) {
-      setDataFromSCConfig(scconfig);
-    }
+    setDataFromConfig(configData);
     this.$eventBus = application.EventBus;
     this.registerEvent();
   }

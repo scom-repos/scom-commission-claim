@@ -76,7 +76,7 @@ declare module "@scom/scom-commission-claim/store/index.ts" {
     export const state: {
         contractInfoByChain: ContractInfoByChainType;
     };
-    export const setDataFromSCConfig: (options: any) => void;
+    export const setDataFromConfig: (options: any) => void;
     export const getContractAddress: (type: ContractType) => any;
 }
 /// <amd-module name="@scom/scom-commission-claim/wallet/index.ts" />
@@ -875,11 +875,6 @@ declare module "@scom/scom-commission-claim" {
         private setTag;
         private updateStyle;
         private updateTheme;
-        private edit;
-        private confirm;
-        private discard;
-        private config;
-        private validate;
         private refreshDApp;
         init(): Promise<void>;
         private initTag;

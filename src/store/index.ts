@@ -50,7 +50,7 @@ export const state = {
   contractInfoByChain: {} as ContractInfoByChainType
 }
 
-export const setDataFromSCConfig = (options: any) => {
+export const setDataFromConfig = (options: any) => {
   if (options.contractInfo) {
     setContractInfo(options.contractInfo);
   }

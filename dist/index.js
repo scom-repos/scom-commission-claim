@@ -12,7 +12,7 @@ define("@scom/scom-commission-claim/interface.ts", ["require", "exports"], funct
 define("@scom/scom-commission-claim/store/index.ts", ["require", "exports", "@ijstech/eth-wallet"], function (require, exports, eth_wallet_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.getContractAddress = exports.setDataFromSCConfig = exports.state = exports.getNetworkName = exports.WalletPlugin = void 0;
+    exports.getContractAddress = exports.setDataFromConfig = exports.state = exports.getNetworkName = exports.WalletPlugin = void 0;
     var WalletPlugin;
     (function (WalletPlugin) {
         WalletPlugin["MetaMask"] = "metamask";
@@ -41,12 +41,12 @@ define("@scom/scom-commission-claim/store/index.ts", ["require", "exports", "@ij
     exports.state = {
         contractInfoByChain: {}
     };
-    const setDataFromSCConfig = (options) => {
+    const setDataFromConfig = (options) => {
         if (options.contractInfo) {
             setContractInfo(options.contractInfo);
         }
     };
-    exports.setDataFromSCConfig = setDataFromSCConfig;
+    exports.setDataFromConfig = setDataFromConfig;
     const setContractInfo = (data) => {
         exports.state.contractInfoByChain = data;
     };
@@ -1217,9 +1217,7 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
             this.onChainChanged = async () => {
                 await this.onSetupPage(true);
             };
-            if (options) {
-                index_5.setDataFromSCConfig(scconfig_json_1.default);
-            }
+            index_5.setDataFromConfig(scconfig_json_1.default);
             this.$eventBus = components_7.application.EventBus;
             this.registerEvent();
         }
@@ -1307,10 +1305,14 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
         }
         async setTag(value) {
             const newValue = value || {};
-            if (newValue.light)
-                this.updateTag('light', newValue.light);
-            if (newValue.dark)
-                this.updateTag('dark', newValue.dark);
+            for (let prop in newValue) {
+                if (newValue.hasOwnProperty(prop)) {
+                    if (prop === 'light' || prop === 'dark')
+                        this.updateTag(prop, newValue[prop]);
+                    else
+                        this.tag[prop] = newValue[prop];
+                }
+            }
             this.updateTheme();
         }
         updateStyle(name, value) {
@@ -1324,33 +1326,35 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
             this.updateStyle('--text-primary', (_a = this.tag[themeVar]) === null || _a === void 0 ? void 0 : _a.fontColor);
             this.updateStyle('--background-main', (_b = this.tag[themeVar]) === null || _b === void 0 ? void 0 : _b.backgroundColor);
         }
-        async edit() {
-            this.gridDApp.visible = false;
-            this.configDApp.visible = true;
-        }
-        async confirm() {
-            this.gridDApp.visible = true;
-            this.configDApp.visible = false;
-            this._data = this.configDApp.data;
-            this.refreshDApp();
-        }
-        async discard() {
-            this.gridDApp.visible = true;
-            this.configDApp.visible = false;
-        }
-        async config() { }
-        validate() {
-            const data = this.configDApp.data;
-            if (!data) {
-                this.mdAlert.message = {
-                    status: 'error',
-                    content: 'Required field is missing.'
-                };
-                this.mdAlert.showModal();
-                return false;
-            }
-            return true;
-        }
+        // private async edit() {
+        //   this.gridDApp.visible = false;
+        //   this.configDApp.visible = true;
+        // }
+        // private async confirm() {
+        //   this.gridDApp.visible = true;
+        //   this.configDApp.visible = false;
+        //   this._data = this.configDApp.data;
+        //   this.refreshDApp();
+        // }
+        // private async discard() {
+        //   this.gridDApp.visible = true;
+        //   this.configDApp.visible = false;
+        // }
+        // private async config() { }
+        // private validate() {
+        //   const data = this.configDApp.data;
+        //   if (
+        //     !data
+        //   ) {
+        //     this.mdAlert.message = {
+        //       status: 'error',
+        //       content: 'Required field is missing.'
+        //     };
+        //     this.mdAlert.showModal();
+        //     return false;
+        //   }
+        //   return true;
+        // }
         async refreshDApp() {
             var _a;
             this.imgLogo.url = index_7.getImageIpfsUrl(this._data.logo);
