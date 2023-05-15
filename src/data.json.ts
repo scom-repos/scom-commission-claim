@@ -8,7 +8,7 @@ export default {
     },
     "defaultBuilderData": {
         "description": "",
-        "logo": "ipfs://bafkreicdwbtx5niyhfzctxvxnwxjt3qfb3kyotrdpkdo26wky33lnt7lci",
+        "logo": "ipfs://bafkreid4yhtwe3qz7lzvafzzt3q4ssdowzg2rpbrd6xqjanivyd7bkcsiy",
         "networks": [
             {
                 "chainId": 43113
