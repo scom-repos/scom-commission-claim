@@ -1,28 +1,28 @@
 {
-    "name": "@scom/scom-commission-claim",
-    "version": "0.1.0",
-    "main": "dist/index.js",
-    "plugin": "dist",
-    "pluginTypes": "pluginTypes/index.d.ts",
-    "types": "pluginTypes/index.d.ts",
-    "engines": {
-        "node": ">=18.0.0"
-    },
-    "devDependencies": {
-        "@ijstech/cli": "^0.1.26",
-        "@ijstech/compiler": "^0.1.22",
-        "@ijstech/components": "^0.1.29",
-        "@ijstech/eth-contract": "^0.1.10",
-        "@ijstech/eth-wallet": "^0.1.35",
-        "@scom/scom-product-contract": "^0.1.2",
-        "@scom/scom-commission-proxy-contract": "^0.1.2",
-        "@scom/scom-token-list": "^0.1.0",
-        "@scom/scom-dapp-container": "https://github.com/scom-repos/scom-dapp-container"
-    },
-    "scripts": {
-        "copy": "sh scripts/copy.sh",
-        "build": "rm -rf dist && npx @ijstech/compiler",
-        "serve": "npx @ijstech/cli serve 8080",
-        "test": "cd test && npm run test && cd .."
-    }
+  "name": "@scom/scom-commission-claim",
+  "version": "0.1.1",
+  "main": "dist/index.js",
+  "plugin": "dist",
+  "pluginTypes": "pluginTypes/index.d.ts",
+  "types": "pluginTypes/index.d.ts",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@ijstech/cli": "^0.1.26",
+    "@ijstech/compiler": "^0.1.22",
+    "@ijstech/components": "^0.1.29",
+    "@ijstech/eth-contract": "^0.1.10",
+    "@ijstech/eth-wallet": "^0.1.35",
+    "@scom/scom-product-contract": "^0.1.2",
+    "@scom/scom-commission-proxy-contract": "^0.1.2",
+    "@scom/scom-token-list": "^0.1.0",
+    "@scom/scom-dapp-container": "https://github.com/scom-repos/scom-dapp-container"
+  },
+  "scripts": {
+    "copy": "sh scripts/copy.sh",
+    "build": "rm -rf dist && npx @ijstech/compiler",
+    "serve": "npx @ijstech/cli serve 8080",
+    "test": "cd test && npm run test && cd .."
+  }
 }
