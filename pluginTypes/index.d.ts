@@ -785,7 +785,7 @@ declare module "@scom/scom-commission-claim/data.json.ts" {
 /// <amd-module name="@scom/scom-commission-claim" />
 declare module "@scom/scom-commission-claim" {
     import { Module, Container, ControlElement } from '@ijstech/components';
-    import { INetworkConfig, IWalletPlugin } from "@scom/scom-commission-claim/interface.ts";
+    import { IConfig, INetworkConfig, IWalletPlugin } from "@scom/scom-commission-claim/interface.ts";
     interface ScomCommissionClaimElement extends ControlElement {
         description?: string;
         logo?: string;
@@ -852,15 +852,29 @@ declare module "@scom/scom-commission-claim" {
         private getEmbedderActions;
         private getActions;
         private _getActions;
-        getConfigurators(): {
+        getConfigurators(): ({
             name: string;
             target: string;
             getActions: any;
             getData: any;
+            setData: (data: IConfig) => Promise<void>;
+            getTag: any;
+            setTag: any;
+            getLinkParams?: undefined;
+            setLinkParams?: undefined;
+        } | {
+            name: string;
+            target: string;
+            getActions: any;
+            getLinkParams: () => {
+                data: string;
+            };
+            setLinkParams: (params: any) => Promise<void>;
+            getData: any;
             setData: any;
             getTag: any;
             setTag: any;
-        }[];
+        })[];
         render(): any;
     }
 }
