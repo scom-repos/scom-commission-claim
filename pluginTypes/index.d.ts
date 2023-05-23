@@ -762,6 +762,11 @@ declare module "@scom/scom-commission-claim/API.ts" {
 declare module "@scom/scom-commission-claim/data.json.ts" {
     const _default_3: {
         contractInfo: {
+            "97": {
+                Proxy: {
+                    address: string;
+                };
+            };
             "43113": {
                 Proxy: {
                     address: string;
