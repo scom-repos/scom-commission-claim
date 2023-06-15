@@ -150,7 +150,7 @@ define("@scom/scom-commission-claim/config/index.tsx", ["require", "exports", "@
     };
     Config = __decorate([
         components_2.customModule,
-        components_2.customElements("commission-claim-config")
+        (0, components_2.customElements)("commission-claim-config")
     ], Config);
     exports.default = Config;
 });
@@ -253,7 +253,7 @@ define("@scom/scom-commission-claim/token-selection/index.tsx", ["require", "exp
         onSetup(init) {
             this.renderTokenItems();
             if (init && this.token && !this.readonly) {
-                const chainId = index_1.getChainId();
+                const chainId = (0, index_1.getChainId)();
                 const _tokenList = scom_token_list_1.tokenStore.getTokenList(chainId);
                 const token = _tokenList.find(t => { var _a, _b; return (t.address && t.address == ((_a = this.token) === null || _a === void 0 ? void 0 : _a.address)) || (t.symbol == ((_b = this.token) === null || _b === void 0 ? void 0 : _b.symbol)); });
                 if (!token) {
@@ -263,12 +263,12 @@ define("@scom/scom-commission-claim/token-selection/index.tsx", ["require", "exp
             this.updateTokenButton(this.token);
         }
         registerEvent() {
-            this.$eventBus.register(this, "isWalletConnected" /* IsWalletConnected */, () => this.onSetup());
-            this.$eventBus.register(this, "IsWalletDisconnected" /* IsWalletDisconnected */, () => this.onSetup());
-            this.$eventBus.register(this, "chainChanged" /* chainChanged */, () => this.onSetup(true));
+            this.$eventBus.register(this, "isWalletConnected" /* EventId.IsWalletConnected */, () => this.onSetup());
+            this.$eventBus.register(this, "IsWalletDisconnected" /* EventId.IsWalletDisconnected */, () => this.onSetup());
+            this.$eventBus.register(this, "chainChanged" /* EventId.chainChanged */, () => this.onSetup(true));
         }
         get tokenList() {
-            const chainId = index_1.getChainId();
+            const chainId = (0, index_1.getChainId)();
             const _tokenList = scom_token_list_1.tokenStore.getTokenList(chainId);
             return _tokenList.map((token) => {
                 const tokenObject = Object.assign({}, token);
@@ -276,7 +276,7 @@ define("@scom/scom-commission-claim/token-selection/index.tsx", ["require", "exp
                 if (token.symbol === nativeToken.symbol) {
                     Object.assign(tokenObject, { isNative: true });
                 }
-                if (!index_1.isWalletConnected()) {
+                if (!(0, index_1.isWalletConnected)()) {
                     Object.assign(tokenObject, {
                         balance: 0,
                     });
@@ -296,7 +296,7 @@ define("@scom/scom-commission-claim/token-selection/index.tsx", ["require", "exp
             }
         }
         renderToken(token) {
-            const chainId = index_1.getChainId();
+            const chainId = (0, index_1.getChainId)();
             const tokenIconPath = scom_token_list_1.assets.tokenPath(token, chainId);
             return (this.$render("i-hstack", { width: '100%', class: `pointer ${index_css_2.tokenStyle}`, verticalAlignment: 'center', padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, border: { radius: 5 }, gap: '0.5rem', onClick: () => this.selectToken(token) },
                 this.$render("i-image", { width: 36, height: 36, url: tokenIconPath, fallbackUrl: scom_token_list_1.assets.fallbackUrl }),
@@ -305,8 +305,8 @@ define("@scom/scom-commission-claim/token-selection/index.tsx", ["require", "exp
                     this.$render("i-label", { font: { size: '0.75rem' }, caption: token.name }))));
         }
         updateTokenButton(token) {
-            const chainId = index_1.getChainId();
-            if (token && index_1.isWalletConnected()) {
+            const chainId = (0, index_1.getChainId)();
+            if (token && (0, index_1.isWalletConnected)()) {
                 const tokenIconPath = scom_token_list_1.assets.tokenPath(token, chainId);
                 const icon = new components_4.Icon(this.btnTokens, {
                     width: 28,
@@ -353,7 +353,7 @@ define("@scom/scom-commission-claim/token-selection/index.tsx", ["require", "exp
         }
     };
     TokenSelection = __decorate([
-        components_4.customElements('commission-claim-token-selection')
+        (0, components_4.customElements)('commission-claim-token-selection')
     ], TokenSelection);
     exports.TokenSelection = TokenSelection;
 });
@@ -458,7 +458,7 @@ define("@scom/scom-commission-claim/alert/index.tsx", ["require", "exports", "@i
         }
     };
     Alert = __decorate([
-        components_6.customElements('commission-claim-alert')
+        (0, components_6.customElements)('commission-claim-alert')
     ], Alert);
     exports.Alert = Alert;
     ;
@@ -709,8 +709,8 @@ define("@scom/scom-commission-claim/contracts/scom-commission-proxy-contract/con
             });
         }
     }
-    exports.Proxy = Proxy;
     Proxy._abi = Proxy_json_1.default.abi;
+    exports.Proxy = Proxy;
 });
 define("@scom/scom-commission-claim/contracts/scom-commission-proxy-contract/contracts/ProxyV2.json.ts", ["require", "exports"], function (require, exports) {
     "use strict";
@@ -958,8 +958,8 @@ define("@scom/scom-commission-claim/contracts/scom-commission-proxy-contract/con
             });
         }
     }
-    exports.ProxyV2 = ProxyV2;
     ProxyV2._abi = ProxyV2_json_1.default.abi;
+    exports.ProxyV2 = ProxyV2;
 });
 define("@scom/scom-commission-claim/contracts/scom-commission-proxy-contract/contracts/index.ts", ["require", "exports", "@scom/scom-commission-claim/contracts/scom-commission-proxy-contract/contracts/Proxy.ts", "@scom/scom-commission-claim/contracts/scom-commission-proxy-contract/contracts/ProxyV2.ts"], function (require, exports, Proxy_1, ProxyV2_1) {
     "use strict";
@@ -1031,7 +1031,7 @@ define("@scom/scom-commission-claim/utils/token.ts", ["require", "exports", "@ij
         if (!token)
             return balance;
         if (token.address) {
-            balance = await exports.getERC20Amount(wallet, token.address, token.decimals);
+            balance = await (0, exports.getERC20Amount)(wallet, token.address, token.decimals);
         }
         else {
             balance = await wallet.balance;
@@ -1072,7 +1072,7 @@ define("@scom/scom-commission-claim/utils/index.ts", ["require", "exports", "@ij
         if (val != 0 && new eth_wallet_4.BigNumber(val).lt(minValue)) {
             return `<${minValue}`;
         }
-        return exports.formatNumberWithSeparators(val, decimals || 4);
+        return (0, exports.formatNumberWithSeparators)(val, decimals || 4);
     };
     exports.formatNumber = formatNumber;
     const formatNumberWithSeparators = (value, precision) => {
@@ -1114,7 +1114,7 @@ define("@scom/scom-commission-claim/API.ts", ["require", "exports", "@ijstech/et
     async function getClaimAmount(token) {
         var _a;
         const wallet = eth_wallet_5.Wallet.getClientInstance();
-        const distributorAddress = index_3.getContractAddress('Proxy');
+        const distributorAddress = (0, index_3.getContractAddress)('Proxy');
         const distributor = new index_2.Contracts.Proxy(wallet, distributorAddress);
         const amount = await distributor.getClaimantBalance({
             claimant: wallet.address,
@@ -1126,9 +1126,9 @@ define("@scom/scom-commission-claim/API.ts", ["require", "exports", "@ijstech/et
     async function claim(token, callback, confirmationCallback) {
         var _a;
         const wallet = eth_wallet_5.Wallet.getClientInstance();
-        const distributorAddress = index_3.getContractAddress('Proxy');
+        const distributorAddress = (0, index_3.getContractAddress)('Proxy');
         const distributor = new index_2.Contracts.Proxy(wallet, distributorAddress);
-        index_4.registerSendTxEvents({
+        (0, index_4.registerSendTxEvents)({
             transactionHash: callback,
             confirmation: confirmationCallback
         });
@@ -1189,12 +1189,12 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
             this.tag = {};
             this.defaultEdit = true;
             this.onWalletConnect = async (connected) => {
-                await this.onSetupPage((connected && !index_6.getChainId()) || connected);
+                await this.onSetupPage((connected && !(0, index_6.getChainId)()) || connected);
             };
             this.onChainChanged = async () => {
                 await this.onSetupPage(true);
             };
-            index_5.setDataFromConfig(data_json_1.default);
+            (0, index_5.setDataFromConfig)(data_json_1.default);
             this.$eventBus = components_7.application.EventBus;
             this.registerEvent();
         }
@@ -1204,15 +1204,15 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
             return self;
         }
         registerEvent() {
-            this.$eventBus.register(this, "isWalletConnected" /* IsWalletConnected */, () => this.onWalletConnect(true));
-            this.$eventBus.register(this, "IsWalletDisconnected" /* IsWalletDisconnected */, () => this.onWalletConnect(false));
-            this.$eventBus.register(this, "chainChanged" /* chainChanged */, this.onChainChanged);
+            this.$eventBus.register(this, "isWalletConnected" /* EventId.IsWalletConnected */, () => this.onWalletConnect(true));
+            this.$eventBus.register(this, "IsWalletDisconnected" /* EventId.IsWalletDisconnected */, () => this.onWalletConnect(false));
+            this.$eventBus.register(this, "chainChanged" /* EventId.chainChanged */, this.onChainChanged);
         }
         async onSetupPage(isWalletConnected) {
             if (isWalletConnected) {
                 if (!this.lblAddress.isConnected)
                     await this.lblAddress.ready();
-                this.lblAddress.caption = index_5.getContractAddress('Proxy');
+                this.lblAddress.caption = (0, index_5.getContractAddress)('Proxy');
                 if (this.tokenSelection.token) {
                     this.refetchClaimAmount(this.tokenSelection.token);
                 }
@@ -1334,7 +1334,7 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
         // }
         async refreshDApp() {
             var _a;
-            this.imgLogo.url = index_7.getImageIpfsUrl(this._data.logo);
+            this.imgLogo.url = (0, index_7.getImageIpfsUrl)(this._data.logo);
             this.markdownDescription.load(this._data.description || '');
             const data = {
                 wallets: this.wallets,
@@ -1349,15 +1349,17 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
             this.isReadyCallbackQueued = true;
             super.init();
             this.initTag();
-            // await this.initWalletData();
-            const description = this.getAttribute('description', true);
-            const logo = this.getAttribute('logo', true);
-            const networks = this.getAttribute('networks', true);
-            const wallets = this.getAttribute('wallets', true);
-            const showHeader = this.getAttribute('showHeader', true);
-            const defaultChainId = this.getAttribute('defaultChainId', true);
-            await this.setData({ description, logo, networks, wallets, showHeader, defaultChainId });
-            await this.onSetupPage(index_6.isWalletConnected());
+            const lazyLoad = this.getAttribute('lazyLoad', true, false);
+            if (!lazyLoad) {
+                const description = this.getAttribute('description', true);
+                const logo = this.getAttribute('logo', true);
+                const networks = this.getAttribute('networks', true);
+                const wallets = this.getAttribute('wallets', true);
+                const showHeader = this.getAttribute('showHeader', true);
+                const defaultChainId = this.getAttribute('defaultChainId', true);
+                await this.setData({ description, logo, networks, wallets, showHeader, defaultChainId });
+                await this.onSetupPage((0, index_6.isWalletConnected)());
+            }
             this.isReadyCallbackQueued = false;
             this.executeReadyCallback();
         }
@@ -1374,15 +1376,8 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
             };
             this.setTag(defaultTag);
         }
-        // private async initWalletData() {
-        //   const selectedProvider = localStorage.getItem('walletProvider') as WalletPlugin;
-        //   const isValidProvider = Object.values(WalletPlugin).includes(selectedProvider);
-        //   if (hasWallet() && isValidProvider) {
-        //     await connectWallet(selectedProvider);
-        //   }
-        // }
         async refetchClaimAmount(token) {
-            const claimAmount = await API_1.getClaimAmount(token);
+            const claimAmount = await (0, API_1.getClaimAmount)(token);
             this.lbClaimable.caption = claimAmount.toFixed(4);
             this.btnClaim.enabled = claimAmount.gt(0);
         }
@@ -1395,7 +1390,7 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                 content: 'Confirming'
             };
             this.mdAlert.showModal();
-            API_1.claim(this.tokenSelection.token, (error, receipt) => {
+            (0, API_1.claim)(this.tokenSelection.token, (error, receipt) => {
                 if (error) {
                     this.mdAlert.message = {
                         status: 'error',
@@ -1638,7 +1633,7 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
     };
     ScomCommissionClaim = __decorate([
         components_7.customModule,
-        components_7.customElements('i-scom-commission-claim')
+        (0, components_7.customElements)('i-scom-commission-claim')
     ], ScomCommissionClaim);
     exports.default = ScomCommissionClaim;
 });

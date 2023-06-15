@@ -792,6 +792,7 @@ declare module "@scom/scom-commission-claim" {
     import { Module, Container, ControlElement } from '@ijstech/components';
     import { IConfig, INetworkConfig, IWalletPlugin } from "@scom/scom-commission-claim/interface.ts";
     interface ScomCommissionClaimElement extends ControlElement {
+        lazyLoad?: boolean;
         description?: string;
         logo?: string;
         defaultChainId: number;

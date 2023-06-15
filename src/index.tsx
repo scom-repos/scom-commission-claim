@@ -28,6 +28,7 @@ import { getImageIpfsUrl } from './utils/index';
 const Theme = Styles.Theme.ThemeVars;
 
 interface ScomCommissionClaimElement extends ControlElement {
+  lazyLoad?: boolean;
   description?: string;
   logo?: string;
   defaultChainId: number;
@@ -248,16 +249,18 @@ export default class ScomCommissionClaim extends Module {
     this.isReadyCallbackQueued = true;
     super.init();
     this.initTag();
-    // await this.initWalletData();
-    const description = this.getAttribute('description', true);
-    const logo = this.getAttribute('logo', true);
-    const networks = this.getAttribute('networks', true);
-    const wallets = this.getAttribute('wallets', true);
-    const showHeader = this.getAttribute('showHeader', true);
-    const defaultChainId = this.getAttribute('defaultChainId', true);
+    const lazyLoad = this.getAttribute('lazyLoad', true, false);
+    if (!lazyLoad) {
+      const description = this.getAttribute('description', true);
+      const logo = this.getAttribute('logo', true);
+      const networks = this.getAttribute('networks', true);
+      const wallets = this.getAttribute('wallets', true);
+      const showHeader = this.getAttribute('showHeader', true);
+      const defaultChainId = this.getAttribute('defaultChainId', true);
 
-    await this.setData({description, logo, networks, wallets, showHeader, defaultChainId});
-    await this.onSetupPage(isWalletConnected());
+      await this.setData({description, logo, networks, wallets, showHeader, defaultChainId});
+      await this.onSetupPage(isWalletConnected());
+    }
     this.isReadyCallbackQueued = false;
     this.executeReadyCallback();
   }
@@ -275,14 +278,6 @@ export default class ScomCommissionClaim extends Module {
     }
     this.setTag(defaultTag);
   }
-
-  // private async initWalletData() {
-  //   const selectedProvider = localStorage.getItem('walletProvider') as WalletPlugin;
-  //   const isValidProvider = Object.values(WalletPlugin).includes(selectedProvider);
-  //   if (hasWallet() && isValidProvider) {
-  //     await connectWallet(selectedProvider);
-  //   }
-  // }
 
   private async refetchClaimAmount(token: ITokenObject) {
     const claimAmount = await getClaimAmount(token);
