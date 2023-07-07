@@ -86,35 +86,6 @@ declare module "@scom/scom-commission-claim/wallet/index.ts" {
     export const hasWallet: () => boolean;
     export const getChainId: () => number;
 }
-/// <amd-module name="@scom/scom-commission-claim/config/index.css.ts" />
-declare module "@scom/scom-commission-claim/config/index.css.ts" {
-    export const textareaStyle: string;
-}
-/// <amd-module name="@scom/scom-commission-claim/config/index.tsx" />
-declare module "@scom/scom-commission-claim/config/index.tsx" {
-    import { Module, ControlElement, Control } from '@ijstech/components';
-    import { IConfig } from "@scom/scom-commission-claim/interface.ts";
-    global {
-        namespace JSX {
-            interface IntrinsicElements {
-                ['commission-claim-config']: ControlElement;
-            }
-        }
-    }
-    export default class Config extends Module {
-        private uploadLogo;
-        private edtDescription;
-        private markdownViewer;
-        private _logo;
-        init(): void;
-        get data(): IConfig;
-        set data(config: IConfig);
-        onChangeFile(source: Control, files: File[]): Promise<void>;
-        onRemove(source: Control, file: File): void;
-        onMarkdownChanged(): void;
-        render(): any;
-    }
-}
 /// <amd-module name="@scom/scom-commission-claim/token-selection/index.css.ts" />
 declare module "@scom/scom-commission-claim/token-selection/index.css.ts" {
     export const scrollbarStyle: string;
@@ -813,7 +784,6 @@ declare module "@scom/scom-commission-claim" {
         private lbClaimable;
         private btnClaim;
         private tokenSelection;
-        private configDApp;
         private mdAlert;
         private lblAddress;
         private dappContainer;

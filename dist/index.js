@@ -88,78 +88,12 @@ define("@scom/scom-commission-claim/wallet/index.ts", ["require", "exports", "@i
     };
     exports.getChainId = getChainId;
 });
-define("@scom/scom-commission-claim/config/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.textareaStyle = void 0;
-    exports.textareaStyle = components_1.Styles.style({
-        $nest: {
-            'textarea': {
-                border: 'none',
-                outline: 'none'
-            }
-        }
-    });
-});
-define("@scom/scom-commission-claim/config/index.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-commission-claim/config/index.css.ts"], function (require, exports, components_2, index_css_1) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    const Theme = components_2.Styles.Theme.ThemeVars;
-    let Config = class Config extends components_2.Module {
-        init() {
-            super.init();
-        }
-        get data() {
-            const config = {
-                description: this.edtDescription.value || "",
-                defaultChainId: 0,
-                wallets: [],
-                networks: []
-            };
-            if (this._logo) {
-                config.logo = this._logo;
-            }
-            return config;
-        }
-        set data(config) {
-            this.uploadLogo.clear();
-            if (config.logo)
-                this.uploadLogo.preview(config.logo);
-            this._logo = config.logo;
-            this.edtDescription.value = config.description || "";
-            this.onMarkdownChanged();
-        }
-        async onChangeFile(source, files) {
-            this._logo = files.length ? await this.uploadLogo.toBase64(files[0]) : undefined;
-        }
-        onRemove(source, file) {
-            this._logo = undefined;
-        }
-        onMarkdownChanged() {
-            this.markdownViewer.load(this.edtDescription.value || "");
-        }
-        render() {
-            return (this.$render("i-vstack", { gap: '0.5rem', padding: { top: '1rem', bottom: '1rem', left: '1rem', right: '1rem' } },
-                this.$render("i-label", { caption: 'Logo:' }),
-                this.$render("i-upload", { id: 'uploadLogo', margin: { top: 8, bottom: 0 }, accept: 'image/*', draggable: true, caption: 'Drag and drop image here', showFileList: false, onChanged: this.onChangeFile.bind(this), onRemoved: this.onRemove.bind(this) }),
-                this.$render("i-label", { caption: 'Descriptions:' }),
-                this.$render("i-grid-layout", { templateColumns: ['50%', '50%'] },
-                    this.$render("i-input", { id: 'edtDescription', class: index_css_1.textareaStyle, width: '100%', height: '100%', display: 'flex', stack: { grow: '1' }, resize: "none", inputType: 'textarea', font: { size: Theme.typography.fontSize, name: Theme.typography.fontFamily }, onChanged: this.onMarkdownChanged.bind(this) }),
-                    this.$render("i-markdown", { id: 'markdownViewer', width: '100%', height: '100%', padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' } }))));
-        }
-    };
-    Config = __decorate([
-        components_2.customModule,
-        (0, components_2.customElements)("commission-claim-config")
-    ], Config);
-    exports.default = Config;
-});
-define("@scom/scom-commission-claim/token-selection/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_3) {
+define("@scom/scom-commission-claim/token-selection/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.modalStyle = exports.tokenStyle = exports.buttonStyle = exports.scrollbarStyle = void 0;
-    const Theme = components_3.Styles.Theme.ThemeVars;
-    exports.scrollbarStyle = components_3.Styles.style({
+    const Theme = components_1.Styles.Theme.ThemeVars;
+    exports.scrollbarStyle = components_1.Styles.style({
         $nest: {
             '&::-webkit-scrollbar-track': {
                 borderRadius: '12px',
@@ -179,17 +113,17 @@ define("@scom/scom-commission-claim/token-selection/index.css.ts", ["require", "
             }
         }
     });
-    exports.buttonStyle = components_3.Styles.style({
+    exports.buttonStyle = components_1.Styles.style({
         boxShadow: 'none'
     });
-    exports.tokenStyle = components_3.Styles.style({
+    exports.tokenStyle = components_1.Styles.style({
         $nest: {
             '&:hover': {
                 background: Theme.action.hover
             }
         }
     });
-    exports.modalStyle = components_3.Styles.style({
+    exports.modalStyle = components_1.Styles.style({
         $nest: {
             '.modal': {
                 padding: 0,
@@ -199,13 +133,13 @@ define("@scom/scom-commission-claim/token-selection/index.css.ts", ["require", "
         }
     });
 });
-define("@scom/scom-commission-claim/token-selection/index.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-commission-claim/wallet/index.ts", "@scom/scom-token-list", "@scom/scom-commission-claim/token-selection/index.css.ts"], function (require, exports, components_4, index_1, scom_token_list_1, index_css_2) {
+define("@scom/scom-commission-claim/token-selection/index.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-commission-claim/wallet/index.ts", "@scom/scom-token-list", "@scom/scom-commission-claim/token-selection/index.css.ts"], function (require, exports, components_2, index_1, scom_token_list_1, index_css_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TokenSelection = void 0;
-    const Theme = components_4.Styles.Theme.ThemeVars;
+    const Theme = components_2.Styles.Theme.ThemeVars;
     ;
-    let TokenSelection = class TokenSelection extends components_4.Module {
+    let TokenSelection = class TokenSelection extends components_2.Module {
         constructor(parent, options) {
             super(parent, options);
             this._readonly = false;
@@ -229,7 +163,7 @@ define("@scom/scom-commission-claim/token-selection/index.tsx", ["require", "exp
                 if (this.onSelectToken)
                     this.onSelectToken(token);
             };
-            this.$eventBus = components_4.application.EventBus;
+            this.$eventBus = components_2.application.EventBus;
             this.registerEvent();
         }
         ;
@@ -298,7 +232,7 @@ define("@scom/scom-commission-claim/token-selection/index.tsx", ["require", "exp
         renderToken(token) {
             const chainId = (0, index_1.getChainId)();
             const tokenIconPath = scom_token_list_1.assets.tokenPath(token, chainId);
-            return (this.$render("i-hstack", { width: '100%', class: `pointer ${index_css_2.tokenStyle}`, verticalAlignment: 'center', padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, border: { radius: 5 }, gap: '0.5rem', onClick: () => this.selectToken(token) },
+            return (this.$render("i-hstack", { width: '100%', class: `pointer ${index_css_1.tokenStyle}`, verticalAlignment: 'center', padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, border: { radius: 5 }, gap: '0.5rem', onClick: () => this.selectToken(token) },
                 this.$render("i-image", { width: 36, height: 36, url: tokenIconPath, fallbackUrl: scom_token_list_1.assets.fallbackUrl }),
                 this.$render("i-vstack", { gap: '0.25rem' },
                     this.$render("i-label", { font: { size: '0.875rem', bold: true }, caption: token.symbol }),
@@ -308,7 +242,7 @@ define("@scom/scom-commission-claim/token-selection/index.tsx", ["require", "exp
             const chainId = (0, index_1.getChainId)();
             if (token && (0, index_1.isWalletConnected)()) {
                 const tokenIconPath = scom_token_list_1.assets.tokenPath(token, chainId);
-                const icon = new components_4.Icon(this.btnTokens, {
+                const icon = new components_2.Icon(this.btnTokens, {
                     width: 28,
                     height: 28,
                     image: {
@@ -344,26 +278,26 @@ define("@scom/scom-commission-claim/token-selection/index.tsx", ["require", "exp
         }
         render() {
             return (this.$render("i-panel", null,
-                this.$render("i-button", { id: 'btnTokens', class: `${index_css_2.buttonStyle} token-button`, width: '100%', height: 40, caption: 'Select a token', rightIcon: { width: 14, height: 14, name: 'angle-down' }, border: { radius: 0 }, background: { color: 'transparent' }, padding: { top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem' }, onClick: this.showTokenModal.bind(this) }),
-                this.$render("i-modal", { id: 'mdTokenSelection', class: index_css_2.modalStyle, width: 400 },
+                this.$render("i-button", { id: 'btnTokens', class: `${index_css_1.buttonStyle} token-button`, width: '100%', height: 40, caption: 'Select a token', rightIcon: { width: 14, height: 14, name: 'angle-down' }, border: { radius: 0 }, background: { color: 'transparent' }, padding: { top: '0.25rem', bottom: '0.25rem', left: '0.5rem', right: '0.5rem' }, onClick: this.showTokenModal.bind(this) }),
+                this.$render("i-modal", { id: 'mdTokenSelection', class: index_css_1.modalStyle, width: 400 },
                     this.$render("i-hstack", { horizontalAlignment: 'space-between', verticalAlignment: 'center', padding: { top: '1rem', bottom: '1rem' }, border: { bottom: { width: 1, style: 'solid', color: Theme.divider } }, margin: { bottom: '1rem', left: '1rem', right: '1rem' }, gap: 4 },
                         this.$render("i-label", { caption: 'Select a token', font: { size: '1.125rem', bold: true } }),
                         this.$render("i-icon", { width: 24, height: 24, class: 'pointer', name: 'times', fill: Theme.colors.primary.main, padding: { top: '0.25rem', bottom: '0.25rem', left: '0.25rem', right: '0.25rem' }, onClick: this.closeTokenModal.bind(this) })),
-                    this.$render("i-grid-layout", { id: 'gridTokenList', class: index_css_2.scrollbarStyle, maxHeight: '45vh', columnsPerRow: 1, overflow: { y: 'auto' }, padding: { bottom: '0.5rem', left: '0.5rem', right: '0.5rem' } }))));
+                    this.$render("i-grid-layout", { id: 'gridTokenList', class: index_css_1.scrollbarStyle, maxHeight: '45vh', columnsPerRow: 1, overflow: { y: 'auto' }, padding: { bottom: '0.5rem', left: '0.5rem', right: '0.5rem' } }))));
         }
     };
     TokenSelection = __decorate([
-        (0, components_4.customElements)('commission-claim-token-selection')
+        (0, components_2.customElements)('commission-claim-token-selection')
     ], TokenSelection);
     exports.TokenSelection = TokenSelection;
 });
-define("@scom/scom-commission-claim/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_5) {
+define("@scom/scom-commission-claim/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_3) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.tokenSelectionStyle = exports.inputStyle = exports.markdownStyle = exports.imageStyle = void 0;
     // Styles.Theme.defaultTheme.background.modal = "#fff";
     // Styles.Theme.applyTheme(Styles.Theme.defaultTheme);
-    exports.imageStyle = components_5.Styles.style({
+    exports.imageStyle = components_3.Styles.style({
         $nest: {
             '&>img': {
                 maxWidth: 'unset',
@@ -372,10 +306,10 @@ define("@scom/scom-commission-claim/index.css.ts", ["require", "exports", "@ijst
             }
         }
     });
-    exports.markdownStyle = components_5.Styles.style({
+    exports.markdownStyle = components_3.Styles.style({
         overflowWrap: 'break-word'
     });
-    exports.inputStyle = components_5.Styles.style({
+    exports.inputStyle = components_3.Styles.style({
         $nest: {
             '> input': {
                 background: 'transparent',
@@ -385,7 +319,7 @@ define("@scom/scom-commission-claim/index.css.ts", ["require", "exports", "@ijst
             }
         }
     });
-    exports.tokenSelectionStyle = components_5.Styles.style({
+    exports.tokenSelectionStyle = components_3.Styles.style({
         $nest: {
             'i-button.token-button': {
                 justifyContent: 'start'
@@ -393,13 +327,13 @@ define("@scom/scom-commission-claim/index.css.ts", ["require", "exports", "@ijst
         }
     });
 });
-define("@scom/scom-commission-claim/alert/index.tsx", ["require", "exports", "@ijstech/components"], function (require, exports, components_6) {
+define("@scom/scom-commission-claim/alert/index.tsx", ["require", "exports", "@ijstech/components"], function (require, exports, components_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Alert = void 0;
-    const Theme = components_6.Styles.Theme.ThemeVars;
+    const Theme = components_4.Styles.Theme.ThemeVars;
     ;
-    let Alert = class Alert extends components_6.Module {
+    let Alert = class Alert extends components_4.Module {
         get message() {
             return this._message;
         }
@@ -458,7 +392,7 @@ define("@scom/scom-commission-claim/alert/index.tsx", ["require", "exports", "@i
         }
     };
     Alert = __decorate([
-        (0, components_6.customElements)('commission-claim-alert')
+        (0, components_4.customElements)('commission-claim-alert')
     ], Alert);
     exports.Alert = Alert;
     ;
@@ -1172,11 +1106,11 @@ define("@scom/scom-commission-claim/data.json.ts", ["require", "exports"], funct
         }
     };
 });
-define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/components", "@scom/scom-commission-claim/store/index.ts", "@scom/scom-commission-claim/wallet/index.ts", "@scom/scom-commission-claim/index.css.ts", "@scom/scom-commission-claim/API.ts", "@scom/scom-commission-claim/data.json.ts", "@scom/scom-commission-claim/utils/index.ts"], function (require, exports, components_7, index_5, index_6, index_css_3, API_1, data_json_1, index_7) {
+define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/components", "@scom/scom-commission-claim/store/index.ts", "@scom/scom-commission-claim/wallet/index.ts", "@scom/scom-commission-claim/index.css.ts", "@scom/scom-commission-claim/API.ts", "@scom/scom-commission-claim/data.json.ts", "@scom/scom-commission-claim/utils/index.ts"], function (require, exports, components_5, index_5, index_6, index_css_2, API_1, data_json_1, index_7) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const Theme = components_7.Styles.Theme.ThemeVars;
-    let ScomCommissionClaim = class ScomCommissionClaim extends components_7.Module {
+    const Theme = components_5.Styles.Theme.ThemeVars;
+    let ScomCommissionClaim = class ScomCommissionClaim extends components_5.Module {
         constructor(parent, options) {
             super(parent, options);
             this._data = {
@@ -1193,7 +1127,7 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                 await this.onSetupPage(true);
             };
             (0, index_5.setDataFromConfig)(data_json_1.default);
-            this.$eventBus = components_7.application.EventBus;
+            this.$eventBus = components_5.application.EventBus;
             this.registerEvent();
         }
         static async create(options, parent) {
@@ -1262,9 +1196,6 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
         }
         async setData(data) {
             this._data = data;
-            // if (!this.configDApp.isConnected) await this.configDApp.ready();
-            if (this.configDApp.isConnected)
-                this.configDApp.data = data;
             await this.refreshDApp();
         }
         getTag() {
@@ -1301,40 +1232,11 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
             this.updateStyle('--text-primary', (_b = this.tag[themeVar]) === null || _b === void 0 ? void 0 : _b.fontColor);
             this.updateStyle('--background-main', (_c = this.tag[themeVar]) === null || _c === void 0 ? void 0 : _c.backgroundColor);
         }
-        // private async edit() {
-        //   this.gridDApp.visible = false;
-        //   this.configDApp.visible = true;
-        // }
-        // private async confirm() {
-        //   this.gridDApp.visible = true;
-        //   this.configDApp.visible = false;
-        //   this._data = this.configDApp.data;
-        //   this.refreshDApp();
-        // }
-        // private async discard() {
-        //   this.gridDApp.visible = true;
-        //   this.configDApp.visible = false;
-        // }
-        // private async config() { }
-        // private validate() {
-        //   const data = this.configDApp.data;
-        //   if (
-        //     !data
-        //   ) {
-        //     this.mdAlert.message = {
-        //       status: 'error',
-        //       content: 'Required field is missing.'
-        //     };
-        //     this.mdAlert.showModal();
-        //     return false;
-        //   }
-        //   return true;
-        // }
         async refreshDApp() {
             var _a;
             let url;
             if (!this._data.logo && !this._data.logoUrl && !this._data.description) {
-                url = 'https://placehold.co/600x400?text=No+Image';
+                url = 'https://placehold.co/150x100?text=No+Image';
             }
             else {
                 url = (0, index_7.getImageIpfsUrl)(this._data.logo) || this._data.logoUrl;
@@ -1377,8 +1279,8 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                 };
             };
             const defaultTag = {
-                dark: getColors(components_7.Styles.Theme.darkTheme),
-                light: getColors(components_7.Styles.Theme.defaultTheme)
+                dark: getColors(components_5.Styles.Theme.darkTheme),
+                light: getColors(components_5.Styles.Theme.defaultTheme)
             };
             this.setTag(defaultTag);
         }
@@ -1621,12 +1523,12 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                         this.$render("i-vstack", { gap: "0.5rem", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, verticalAlignment: 'space-between', horizontalAlignment: "center" },
                             this.$render("i-label", { caption: "Commission Claim", font: { bold: true, size: '1rem' } }),
                             this.$render("i-vstack", { gap: '0.25rem' },
-                                this.$render("i-image", { id: 'imgLogo', class: index_css_3.imageStyle, height: 100 }),
-                                this.$render("i-markdown", { id: 'markdownDescription', class: index_css_3.markdownStyle, width: '100%', height: '100%' })),
+                                this.$render("i-image", { id: 'imgLogo', class: index_css_2.imageStyle, height: 100 }),
+                                this.$render("i-markdown", { id: 'markdownDescription', class: index_css_2.markdownStyle, width: '100%', height: '100%' })),
                             this.$render("i-vstack", { gap: '0.25rem' },
                                 this.$render("i-hstack", { width: "100%", verticalAlignment: "center" },
                                     this.$render("i-label", { caption: 'Token:', font: { size: '0.875rem' } }),
-                                    this.$render("commission-claim-token-selection", { id: 'tokenSelection', class: index_css_3.tokenSelectionStyle, onSelectToken: this.selectToken.bind(this) })),
+                                    this.$render("commission-claim-token-selection", { id: 'tokenSelection', class: index_css_2.tokenSelectionStyle, onSelectToken: this.selectToken.bind(this) })),
                                 this.$render("i-hstack", { width: "100%", gap: "0.5rem", verticalAlignment: "center" },
                                     this.$render("i-label", { caption: 'Claimable:', font: { size: '0.875rem' } }),
                                     this.$render("i-label", { id: 'lbClaimable', font: { size: '0.875rem' } })),
@@ -1636,13 +1538,12 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                                 this.$render("i-label", { id: 'lblRef', font: { size: '0.75rem' } }),
                                 this.$render("i-label", { id: 'lblAddress', font: { size: '0.75rem' }, overflowWrap: 'anywhere' })),
                             this.$render("i-label", { caption: 'Terms & Condition', font: { size: '0.75rem' }, link: { href: 'https://docs.scom.dev/' } }))),
-                    this.$render("commission-claim-config", { id: 'configDApp', visible: false }),
                     this.$render("commission-claim-alert", { id: 'mdAlert' }))));
         }
     };
     ScomCommissionClaim = __decorate([
-        components_7.customModule,
-        (0, components_7.customElements)('i-scom-commission-claim')
+        components_5.customModule,
+        (0, components_5.customElements)('i-scom-commission-claim')
     ], ScomCommissionClaim);
     exports.default = ScomCommissionClaim;
 });
