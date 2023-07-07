@@ -31,6 +31,7 @@ interface ScomCommissionClaimElement extends ControlElement {
   lazyLoad?: boolean;
   description?: string;
   logo?: string;
+  logoUrl?: string;
   defaultChainId: number;
   wallets: IWalletPlugin[];
   networks: INetworkConfig[];
@@ -234,7 +235,13 @@ export default class ScomCommissionClaim extends Module {
   // }
 
   private async refreshDApp() {
-    this.imgLogo.url = getImageIpfsUrl(this._data.logo);
+    let url;
+    if (!this._data.logo && !this._data.logoUrl && !this._data.description) {
+      url = 'https://placehold.co/600x400?text=No+Image';
+    } else {
+      url = getImageIpfsUrl(this._data.logo) || this._data.logoUrl;
+    }
+    this.imgLogo.url = url;
     this.markdownDescription.load(this._data.description || '');
     const data: any = {
       wallets: this.wallets,
@@ -253,12 +260,13 @@ export default class ScomCommissionClaim extends Module {
     if (!lazyLoad) {
       const description = this.getAttribute('description', true);
       const logo = this.getAttribute('logo', true);
+      const logoUrl = this.getAttribute('logoUrl', true);
       const networks = this.getAttribute('networks', true);
       const wallets = this.getAttribute('wallets', true);
       const showHeader = this.getAttribute('showHeader', true);
       const defaultChainId = this.getAttribute('defaultChainId', true);
 
-      await this.setData({description, logo, networks, wallets, showHeader, defaultChainId});
+      await this.setData({description, logo, logoUrl, networks, wallets, showHeader, defaultChainId});
       await this.onSetupPage(isWalletConnected());
     }
     this.isReadyCallbackQueued = false;
@@ -367,7 +375,11 @@ export default class ScomCommissionClaim extends Module {
         },
         "logo": {
           type: 'string',
-          format: 'data-url'
+          format: 'data-cid'
+        },
+        "logoUrl": {
+          type: 'string',
+          title: 'Logo URL'
         }
       }
     };
@@ -421,8 +433,9 @@ export default class ScomCommissionClaim extends Module {
           return {
             execute: async () => {
               _oldData = { ...this._data };
-              if (userInputData.logo != undefined) this._data.logo = userInputData.logo;
-              if (userInputData.description != undefined) this._data.description = userInputData.description;
+              this._data.logo = userInputData.logo;
+              this._data.logoUrl = userInputData.logoUrl;
+              this._data.description = userInputData.description;
               this.setData(this._data);
               if (builder?.setData) builder.setData(this._data);
             },

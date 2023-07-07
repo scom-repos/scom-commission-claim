@@ -21,6 +21,7 @@ declare module "@scom/scom-commission-claim/interface.ts" {
     export interface IConfig {
         description?: string;
         logo?: string;
+        logoUrl?: string;
         defaultChainId: number;
         wallets: IWalletPlugin[];
         networks: INetworkConfig[];
@@ -774,8 +775,6 @@ declare module "@scom/scom-commission-claim/data.json.ts" {
             };
         };
         defaultBuilderData: {
-            description: string;
-            logo: string;
             networks: {
                 chainId: number;
             }[];
@@ -795,6 +794,7 @@ declare module "@scom/scom-commission-claim" {
         lazyLoad?: boolean;
         description?: string;
         logo?: string;
+        logoUrl?: string;
         defaultChainId: number;
         wallets: IWalletPlugin[];
         networks: INetworkConfig[];

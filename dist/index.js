@@ -1098,8 +1098,8 @@ define("@scom/scom-commission-claim/utils/index.ts", ["require", "exports", "@ij
     exports.formatNumberWithSeparators = formatNumberWithSeparators;
     const IPFS_BASE_URL = "https://ipfs.scom.dev/ipfs/";
     const getImageIpfsUrl = (url) => {
-        if (url && url.startsWith("ipfs://"))
-            return IPFS_BASE_URL + url.substring(7);
+        if (url)
+            return IPFS_BASE_URL + url;
         return url;
     };
     exports.getImageIpfsUrl = getImageIpfsUrl;
@@ -1155,8 +1155,6 @@ define("@scom/scom-commission-claim/data.json.ts", ["require", "exports"], funct
             }
         },
         "defaultBuilderData": {
-            "description": "",
-            "logo": "ipfs://bafkreid4yhtwe3qz7lzvafzzt3q4ssdowzg2rpbrd6xqjanivyd7bkcsiy",
             "networks": [
                 {
                     "chainId": 97
@@ -1334,7 +1332,14 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
         // }
         async refreshDApp() {
             var _a;
-            this.imgLogo.url = (0, index_7.getImageIpfsUrl)(this._data.logo);
+            let url;
+            if (!this._data.logo && !this._data.logoUrl && !this._data.description) {
+                url = 'https://placehold.co/600x400?text=No+Image';
+            }
+            else {
+                url = (0, index_7.getImageIpfsUrl)(this._data.logo) || this._data.logoUrl;
+            }
+            this.imgLogo.url = url;
             this.markdownDescription.load(this._data.description || '');
             const data = {
                 wallets: this.wallets,
@@ -1353,11 +1358,12 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
             if (!lazyLoad) {
                 const description = this.getAttribute('description', true);
                 const logo = this.getAttribute('logo', true);
+                const logoUrl = this.getAttribute('logoUrl', true);
                 const networks = this.getAttribute('networks', true);
                 const wallets = this.getAttribute('wallets', true);
                 const showHeader = this.getAttribute('showHeader', true);
                 const defaultChainId = this.getAttribute('defaultChainId', true);
-                await this.setData({ description, logo, networks, wallets, showHeader, defaultChainId });
+                await this.setData({ description, logo, logoUrl, networks, wallets, showHeader, defaultChainId });
                 await this.onSetupPage((0, index_6.isWalletConnected)());
             }
             this.isReadyCallbackQueued = false;
@@ -1459,7 +1465,11 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                     },
                     "logo": {
                         type: 'string',
-                        format: 'data-url'
+                        format: 'data-cid'
+                    },
+                    "logoUrl": {
+                        type: 'string',
+                        title: 'Logo URL'
                     }
                 }
             };
@@ -1510,10 +1520,9 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                         return {
                             execute: async () => {
                                 _oldData = Object.assign({}, this._data);
-                                if (userInputData.logo != undefined)
-                                    this._data.logo = userInputData.logo;
-                                if (userInputData.description != undefined)
-                                    this._data.description = userInputData.description;
+                                this._data.logo = userInputData.logo;
+                                this._data.logoUrl = userInputData.logoUrl;
+                                this._data.description = userInputData.description;
                                 this.setData(this._data);
                                 if (builder === null || builder === void 0 ? void 0 : builder.setData)
                                     builder.setData(this._data);

@@ -25,6 +25,7 @@ export interface PageBlock {
 export interface IConfig {
   description?: string;
   logo?: string;
+  logoUrl?: string;
   defaultChainId: number;
   wallets: IWalletPlugin[];
   networks: INetworkConfig[];
