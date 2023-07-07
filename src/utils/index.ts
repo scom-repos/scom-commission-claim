@@ -37,8 +37,8 @@ export const formatNumberWithSeparators = (value: number, precision?: number) =>
 const IPFS_BASE_URL = "https://ipfs.scom.dev/ipfs/";
 
 export const getImageIpfsUrl = (url: string) => {
-  if (url && url.startsWith("ipfs://"))
-    return IPFS_BASE_URL + url.substring(7);
+  if (url)
+    return IPFS_BASE_URL + url;
   return url;
 }
 

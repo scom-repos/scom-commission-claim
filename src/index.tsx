@@ -16,7 +16,6 @@ import {
 import { IConfig, INetworkConfig, ITokenObject, IWalletPlugin } from './interface';
 import { EventId, getContractAddress, setDataFromConfig } from './store/index';
 import { getChainId, isWalletConnected } from './wallet/index';
-import Config from './config/index';
 import { TokenSelection } from './token-selection/index';
 import { imageStyle, markdownStyle, tokenSelectionStyle } from './index.css';
 import { Alert } from './alert/index';
@@ -31,6 +30,7 @@ interface ScomCommissionClaimElement extends ControlElement {
   lazyLoad?: boolean;
   description?: string;
   logo?: string;
+  logoUrl?: string;
   defaultChainId: number;
   wallets: IWalletPlugin[];
   networks: INetworkConfig[];
@@ -53,7 +53,6 @@ export default class ScomCommissionClaim extends Module {
   private lbClaimable: Label;
   private btnClaim: Button;
   private tokenSelection: TokenSelection;
-  private configDApp: Config;
   private mdAlert: Alert;
   private lblAddress: Label;
   private dappContainer: ScomDappContainer;
@@ -157,8 +156,6 @@ export default class ScomCommissionClaim extends Module {
 
   private async setData(data: IConfig) {
     this._data = data;
-    // if (!this.configDApp.isConnected) await this.configDApp.ready();
-    if (this.configDApp.isConnected) this.configDApp.data = data;
     await this.refreshDApp();
   }
 
@@ -199,42 +196,14 @@ export default class ScomCommissionClaim extends Module {
     this.updateStyle('--background-main', this.tag[themeVar]?.backgroundColor);
   }
 
-  // private async edit() {
-  //   this.gridDApp.visible = false;
-  //   this.configDApp.visible = true;
-  // }
-
-  // private async confirm() {
-  //   this.gridDApp.visible = true;
-  //   this.configDApp.visible = false;
-  //   this._data = this.configDApp.data;
-  //   this.refreshDApp();
-  // }
-
-  // private async discard() {
-  //   this.gridDApp.visible = true;
-  //   this.configDApp.visible = false;
-  // }
-
-  // private async config() { }
-
-  // private validate() {
-  //   const data = this.configDApp.data;
-  //   if (
-  //     !data
-  //   ) {
-  //     this.mdAlert.message = {
-  //       status: 'error',
-  //       content: 'Required field is missing.'
-  //     };
-  //     this.mdAlert.showModal();
-  //     return false;
-  //   }
-  //   return true;
-  // }
-
   private async refreshDApp() {
-    this.imgLogo.url = getImageIpfsUrl(this._data.logo);
+    let url;
+    if (!this._data.logo && !this._data.logoUrl && !this._data.description) {
+      url = 'https://placehold.co/150x100?text=No+Image';
+    } else {
+      url = getImageIpfsUrl(this._data.logo) || this._data.logoUrl;
+    }
+    this.imgLogo.url = url;
     this.markdownDescription.load(this._data.description || '');
     const data: any = {
       wallets: this.wallets,
@@ -253,12 +222,13 @@ export default class ScomCommissionClaim extends Module {
     if (!lazyLoad) {
       const description = this.getAttribute('description', true);
       const logo = this.getAttribute('logo', true);
+      const logoUrl = this.getAttribute('logoUrl', true);
       const networks = this.getAttribute('networks', true);
       const wallets = this.getAttribute('wallets', true);
       const showHeader = this.getAttribute('showHeader', true);
       const defaultChainId = this.getAttribute('defaultChainId', true);
 
-      await this.setData({description, logo, networks, wallets, showHeader, defaultChainId});
+      await this.setData({description, logo, logoUrl, networks, wallets, showHeader, defaultChainId});
       await this.onSetupPage(isWalletConnected());
     }
     this.isReadyCallbackQueued = false;
@@ -367,7 +337,11 @@ export default class ScomCommissionClaim extends Module {
         },
         "logo": {
           type: 'string',
-          format: 'data-url'
+          format: 'data-cid'
+        },
+        "logoUrl": {
+          type: 'string',
+          title: 'Logo URL'
         }
       }
     };
@@ -421,8 +395,9 @@ export default class ScomCommissionClaim extends Module {
           return {
             execute: async () => {
               _oldData = { ...this._data };
-              if (userInputData.logo != undefined) this._data.logo = userInputData.logo;
-              if (userInputData.description != undefined) this._data.description = userInputData.description;
+              this._data.logo = userInputData.logo;
+              this._data.logoUrl = userInputData.logoUrl;
+              this._data.description = userInputData.description;
               this.setData(this._data);
               if (builder?.setData) builder.setData(this._data);
             },
@@ -566,7 +541,6 @@ export default class ScomCommissionClaim extends Module {
               <i-label caption='Terms & Condition' font={{ size: '0.75rem' }} link={{ href: 'https://docs.scom.dev/' }}></i-label>
             </i-vstack>
           </i-grid-layout>
-          <commission-claim-config id='configDApp' visible={false}></commission-claim-config>
           <commission-claim-alert id='mdAlert'></commission-claim-alert>
         </i-panel>
       </i-scom-dapp-container>

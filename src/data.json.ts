@@ -12,8 +12,6 @@ export default {
         }
     },
     "defaultBuilderData": {
-        "description": "",
-        "logo": "ipfs://bafkreid4yhtwe3qz7lzvafzzt3q4ssdowzg2rpbrd6xqjanivyd7bkcsiy",
         "networks": [
             {
                 "chainId": 97
