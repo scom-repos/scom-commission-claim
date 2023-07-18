@@ -13,9 +13,8 @@ import {
   ControlElement,
   IDataSchema
 } from '@ijstech/components';
-import { IConfig, INetworkConfig, ITokenObject, IWalletPlugin } from './interface';
-import { EventId, getContractAddress, setDataFromConfig } from './store/index';
-import { getChainId, isWalletConnected } from './wallet/index';
+import { IConfig, INetworkConfig, IWalletPlugin } from './interface';
+import { EventId, getContractAddress, getRpcWallet, initRpcWallet, isRpcWalletConnected, setDataFromConfig, getChainId } from './store/index';
 import { TokenSelection } from './token-selection/index';
 import { imageStyle, markdownStyle, tokenSelectionStyle } from './index.css';
 import { Alert } from './alert/index';
@@ -23,6 +22,8 @@ import { claim, getClaimAmount } from './API';
 import ScomDappContainer from '@scom/scom-dapp-container';
 import configData from './data.json';
 import { getImageIpfsUrl } from './utils/index';
+import { ITokenObject } from '@scom/scom-token-list';
+import { Constants, Wallet } from '@ijstech/eth-wallet';
 
 const Theme = Styles.Theme.ThemeVars;
 
@@ -35,6 +36,7 @@ interface ScomCommissionClaimElement extends ControlElement {
   wallets: IWalletPlugin[];
   networks: INetworkConfig[];
   showHeader?: boolean;
+  showFooter?: boolean;
 }
 
 declare global {
@@ -69,6 +71,9 @@ export default class ScomCommissionClaim extends Module {
   readonly onDiscard: () => Promise<void>;
   readonly onEdit: () => Promise<void>;
 
+  private rpcWalletEvents: any = [];
+  private clientEvents: any = [];
+
   constructor(parent?: Container, options?: any) {
     super(parent, options);
     setDataFromConfig(configData);
@@ -83,26 +88,31 @@ export default class ScomCommissionClaim extends Module {
   }
 
   private registerEvent() {
-    this.$eventBus.register(this, EventId.IsWalletConnected, () => this.onWalletConnect(true));
-    this.$eventBus.register(this, EventId.IsWalletDisconnected, () => this.onWalletConnect(false));
-    this.$eventBus.register(this, EventId.chainChanged, this.onChainChanged);
-  }
-
-  private onWalletConnect = async (connected: boolean) => {
-    await this.onSetupPage((connected && !getChainId()) || connected);
+    this.clientEvents.push(this.$eventBus.register(this, EventId.chainChanged, this.onChainChanged))
   }
 
   private onChainChanged = async () => {
-    await this.onSetupPage(true);
+    await this.onSetupPage();
   }
 
-  private async onSetupPage(isWalletConnected: boolean) {
-    if (isWalletConnected) {
-      if (!this.lblAddress.isConnected) await this.lblAddress.ready();
-      this.lblAddress.caption = getContractAddress('Proxy');
-      if (this.tokenSelection.token) {
-        this.refetchClaimAmount(this.tokenSelection.token);
-      }
+  private onSetupPage = async () => {
+    if (!this.lblAddress.isConnected) await this.lblAddress.ready();
+    if (!this.imgLogo.isConnected) await this.imgLogo.ready();
+    if (!this.markdownDescription.isConnected) await this.markdownDescription.ready();
+    this.lblAddress.caption = getContractAddress('Proxy');
+    let url = '';
+    if (!this._data.logo && !this._data.logoUrl && !this._data.description) {
+      url = 'https://placehold.co/150x100?text=No+Image';
+    } else {
+      url = getImageIpfsUrl(this._data.logo) || this._data.logoUrl;
+    }
+    this.imgLogo.url = url;
+    this.markdownDescription.load(this._data.description || '');
+    try {
+      await Wallet.getClientInstance().init();
+    } catch { }
+    if (this.tokenSelection.token) {
+      this.refetchClaimAmount(this.tokenSelection.token);
     }
   }
   
@@ -143,6 +153,13 @@ export default class ScomCommissionClaim extends Module {
     this._data.showHeader = value;
   }
 
+  get showFooter() {
+    return this._data.showFooter ?? true;
+  }
+  set showFooter(value: boolean) {
+    this._data.showFooter = value;
+  }
+
   get defaultChainId() {
     return this._data.defaultChainId;
   }
@@ -156,7 +173,37 @@ export default class ScomCommissionClaim extends Module {
 
   private async setData(data: IConfig) {
     this._data = data;
-    await this.refreshDApp();
+    initRpcWallet(this.defaultChainId);
+    const rpcWallet = getRpcWallet();
+    const event = rpcWallet.registerWalletEvent(this, Constants.RpcWalletEvent.Connected, async (connected: boolean) => {
+      await this.onSetupPage();
+    });
+    this.rpcWalletEvents.push(event);
+    const containerData: any = {
+      wallets: this.wallets,
+      networks: this.networks,
+      showHeader: this.showHeader,
+      showFooter: this.showFooter,
+      defaultChainId: this.defaultChainId,
+      rpcWalletId: rpcWallet?.instanceId || ''
+    }
+    if (this.dappContainer?.setData) {
+      this.dappContainer.setData(containerData)
+    }
+    await this.onSetupPage();
+  }
+
+  onHide() {
+    this.dappContainer.onHide();
+    const rpcWallet = getRpcWallet();
+    for (let event of this.rpcWalletEvents) {
+      rpcWallet.unregisterWalletEvent(event);
+    }
+    this.rpcWalletEvents = [];
+    for (let event of this.clientEvents) {
+      event.unregister();
+    }
+    this.clientEvents = [];
   }
 
   private getTag() {
@@ -196,24 +243,6 @@ export default class ScomCommissionClaim extends Module {
     this.updateStyle('--background-main', this.tag[themeVar]?.backgroundColor);
   }
 
-  private async refreshDApp() {
-    let url;
-    if (!this._data.logo && !this._data.logoUrl && !this._data.description) {
-      url = 'https://placehold.co/150x100?text=No+Image';
-    } else {
-      url = getImageIpfsUrl(this._data.logo) || this._data.logoUrl;
-    }
-    this.imgLogo.url = url;
-    this.markdownDescription.load(this._data.description || '');
-    const data: any = {
-      wallets: this.wallets,
-      networks: this.networks,
-      showHeader: this.showHeader,
-      defaultChainId: this.defaultChainId
-    }
-    if (this.dappContainer?.setData) this.dappContainer.setData(data)
-  }
-
   async init() {
     this.isReadyCallbackQueued = true;
     super.init();
@@ -226,10 +255,10 @@ export default class ScomCommissionClaim extends Module {
       const networks = this.getAttribute('networks', true);
       const wallets = this.getAttribute('wallets', true);
       const showHeader = this.getAttribute('showHeader', true);
+      const showFooter = this.getAttribute('showFooter', true);
       const defaultChainId = this.getAttribute('defaultChainId', true);
 
-      await this.setData({description, logo, logoUrl, networks, wallets, showHeader, defaultChainId});
-      await this.onSetupPage(isWalletConnected());
+      await this.setData({description, logo, logoUrl, networks, wallets, showHeader, showFooter, defaultChainId});
     }
     this.isReadyCallbackQueued = false;
     this.executeReadyCallback();
@@ -486,7 +515,7 @@ export default class ScomCommissionClaim extends Module {
 
   render() {
     return (
-      <i-scom-dapp-container id="dappContainer">
+      <i-scom-dapp-container id="dappContainer" showFooter={true} showHeader={true}>
         <i-panel background={{color: Theme.background.main}}>
           <i-grid-layout
             id='gridDApp'

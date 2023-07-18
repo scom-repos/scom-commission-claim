@@ -1,3 +1,5 @@
+/// <reference path="@ijstech/eth-wallet/index.d.ts" />
+/// <reference path="@scom/scom-dapp-container/@ijstech/eth-wallet/index.d.ts" />
 /// <reference path="@ijstech/eth-contract/index.d.ts" />
 /// <amd-module name="@scom/scom-commission-claim/interface.ts" />
 declare module "@scom/scom-commission-claim/interface.ts" {
@@ -26,19 +28,7 @@ declare module "@scom/scom-commission-claim/interface.ts" {
         wallets: IWalletPlugin[];
         networks: INetworkConfig[];
         showHeader?: boolean;
-    }
-    export interface ITokenObject {
-        address?: string;
-        name: string;
-        decimals: number;
-        symbol: string;
-        status?: boolean | null;
-        logoURI?: string;
-        isCommon?: boolean | null;
-        balance?: string | number;
-        isNative?: boolean | null;
-        isWETH?: boolean | null;
-        isNew?: boolean | null;
+        showFooter?: boolean;
     }
     export interface IWalletPlugin {
         name: string;
@@ -76,15 +66,16 @@ declare module "@scom/scom-commission-claim/store/index.ts" {
     };
     export const state: {
         contractInfoByChain: ContractInfoByChainType;
+        rpcWalletId: string;
     };
     export const setDataFromConfig: (options: any) => void;
     export const getContractAddress: (type: ContractType) => any;
-}
-/// <amd-module name="@scom/scom-commission-claim/wallet/index.ts" />
-declare module "@scom/scom-commission-claim/wallet/index.ts" {
-    export function isWalletConnected(): boolean;
-    export const hasWallet: () => boolean;
-    export const getChainId: () => number;
+    export function isClientWalletConnected(): boolean;
+    export function isRpcWalletConnected(): boolean;
+    export function getChainId(): number;
+    export function initRpcWallet(defaultChainId: number): string;
+    export function getRpcWallet(): import("@ijstech/eth-wallet").IRpcWallet;
+    export function getClientWallet(): import("@ijstech/eth-wallet").IClientWallet;
 }
 /// <amd-module name="@scom/scom-commission-claim/token-selection/index.css.ts" />
 declare module "@scom/scom-commission-claim/token-selection/index.css.ts" {
@@ -96,7 +87,7 @@ declare module "@scom/scom-commission-claim/token-selection/index.css.ts" {
 /// <amd-module name="@scom/scom-commission-claim/token-selection/index.tsx" />
 declare module "@scom/scom-commission-claim/token-selection/index.tsx" {
     import { Module, ControlElement, Container } from '@ijstech/components';
-    import { ITokenObject } from "@scom/scom-commission-claim/interface.ts";
+    import { ITokenObject } from '@scom/scom-token-list';
     type selectTokenCallback = (token: ITokenObject) => void;
     interface TokenSelectionElement extends ControlElement {
         readonly?: boolean;
@@ -710,7 +701,7 @@ declare module "@scom/scom-commission-claim/contracts/scom-commission-proxy-cont
 /// <amd-module name="@scom/scom-commission-claim/utils/token.ts" />
 declare module "@scom/scom-commission-claim/utils/token.ts" {
     import { BigNumber, IWallet, ISendTxEventsOptions } from "@ijstech/eth-wallet";
-    import { ITokenObject } from "@scom/scom-commission-claim/interface.ts";
+    import { ITokenObject } from "@scom/scom-token-list";
     export const getERC20Amount: (wallet: IWallet, tokenAddress: string, decimals: number) => Promise<BigNumber>;
     export const getTokenBalance: (token: ITokenObject) => Promise<BigNumber>;
     export const registerSendTxEvents: (sendTxEventHandlers: ISendTxEventsOptions) => void;
@@ -724,9 +715,8 @@ declare module "@scom/scom-commission-claim/utils/index.ts" {
 }
 /// <amd-module name="@scom/scom-commission-claim/API.ts" />
 declare module "@scom/scom-commission-claim/API.ts" {
-    import { BigNumber } from '@ijstech/eth-wallet';
-    import { ITokenObject } from "@scom/scom-commission-claim/interface.ts";
-    function getClaimAmount(token: ITokenObject): Promise<BigNumber>;
+    import { ITokenObject } from '@scom/scom-token-list';
+    function getClaimAmount(token: ITokenObject): Promise<import("@ijstech/eth-wallet").BigNumber>;
     function claim(token: ITokenObject, callback?: any, confirmationCallback?: any): Promise<import("@ijstech/eth-contract").TransactionReceipt>;
     export { getClaimAmount, claim };
 }
@@ -770,6 +760,7 @@ declare module "@scom/scom-commission-claim" {
         wallets: IWalletPlugin[];
         networks: INetworkConfig[];
         showHeader?: boolean;
+        showFooter?: boolean;
     }
     global {
         namespace JSX {
@@ -794,10 +785,11 @@ declare module "@scom/scom-commission-claim" {
         readonly onConfirm: () => Promise<void>;
         readonly onDiscard: () => Promise<void>;
         readonly onEdit: () => Promise<void>;
+        private rpcWalletEvents;
+        private clientEvents;
         constructor(parent?: Container, options?: any);
         static create(options?: ScomCommissionClaimElement, parent?: Container): Promise<ScomCommissionClaim>;
         private registerEvent;
-        private onWalletConnect;
         private onChainChanged;
         private onSetupPage;
         get description(): string;
@@ -810,16 +802,18 @@ declare module "@scom/scom-commission-claim" {
         set networks(value: INetworkConfig[]);
         get showHeader(): boolean;
         set showHeader(value: boolean);
+        get showFooter(): boolean;
+        set showFooter(value: boolean);
         get defaultChainId(): number;
         set defaultChainId(value: number);
         private getData;
         private setData;
+        onHide(): void;
         private getTag;
         private updateTag;
         private setTag;
         private updateStyle;
         private updateTheme;
-        private refreshDApp;
         init(): Promise<void>;
         private initTag;
         private refetchClaimAmount;
