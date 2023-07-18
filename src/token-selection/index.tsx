@@ -11,11 +11,9 @@ import {
   Modal,
   Icon
 } from '@ijstech/components';
-import { ITokenObject } from '../interface';
-import { EventId } from '../store/index';
+import { EventId, getChainId } from '../store/index';
 import { } from '@ijstech/eth-wallet';
-import { isWalletConnected, getChainId } from '../wallet/index';
-import { tokenStore, ChainNativeTokenByChainId, assets as tokenAssets } from '@scom/scom-token-list';
+import { tokenStore, ChainNativeTokenByChainId, assets as tokenAssets, ITokenObject, isWalletConnected } from '@scom/scom-token-list';
 import { buttonStyle, modalStyle, scrollbarStyle, tokenStyle } from './index.css';
 
 const Theme = Styles.Theme.ThemeVars;

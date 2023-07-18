@@ -1,8 +1,8 @@
-import { BigNumber, Utils, Wallet } from '@ijstech/eth-wallet';
-import { ITokenObject } from './interface';
+import { Utils, Wallet } from '@ijstech/eth-wallet';
 import { Contracts as ProxyContracts } from './contracts/scom-commission-proxy-contract/index';
 import { getContractAddress } from './store/index';
 import { registerSendTxEvents } from './utils/index';
+import { ITokenObject } from '@scom/scom-token-list';
 
 async function getClaimAmount(token: ITokenObject) {
   const wallet = Wallet.getClientInstance();

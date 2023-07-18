@@ -7,12 +7,11 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 define("@scom/scom-commission-claim/interface.ts", ["require", "exports"], function (require, exports) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    ;
 });
-define("@scom/scom-commission-claim/store/index.ts", ["require", "exports", "@ijstech/eth-wallet"], function (require, exports, eth_wallet_1) {
+define("@scom/scom-commission-claim/store/index.ts", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet"], function (require, exports, components_1, eth_wallet_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.getContractAddress = exports.setDataFromConfig = exports.state = exports.getNetworkName = exports.WalletPlugin = void 0;
+    exports.getClientWallet = exports.getRpcWallet = exports.initRpcWallet = exports.getChainId = exports.isRpcWalletConnected = exports.isClientWalletConnected = exports.getContractAddress = exports.setDataFromConfig = exports.state = exports.getNetworkName = exports.WalletPlugin = void 0;
     var WalletPlugin;
     (function (WalletPlugin) {
         WalletPlugin["MetaMask"] = "metamask";
@@ -39,7 +38,8 @@ define("@scom/scom-commission-claim/store/index.ts", ["require", "exports", "@ij
     };
     exports.getNetworkName = getNetworkName;
     exports.state = {
-        contractInfoByChain: {}
+        contractInfoByChain: {},
+        rpcWalletId: ''
     };
     const setDataFromConfig = (options) => {
         if (options.contractInfo) {
@@ -60,40 +60,56 @@ define("@scom/scom-commission-claim/store/index.ts", ["require", "exports", "@ij
         return (_a = contracts[type]) === null || _a === void 0 ? void 0 : _a.address;
     };
     exports.getContractAddress = getContractAddress;
-});
-define("@scom/scom-commission-claim/wallet/index.ts", ["require", "exports", "@ijstech/eth-wallet"], function (require, exports, eth_wallet_2) {
-    "use strict";
-    Object.defineProperty(exports, "__esModule", { value: true });
-    exports.getChainId = exports.hasWallet = exports.isWalletConnected = void 0;
-    const defaultChainId = 1;
-    function isWalletConnected() {
-        const wallet = eth_wallet_2.Wallet.getClientInstance();
+    function isClientWalletConnected() {
+        const wallet = eth_wallet_1.Wallet.getClientInstance();
         return wallet.isConnected;
     }
-    exports.isWalletConnected = isWalletConnected;
-    const hasWallet = () => {
-        let hasWallet = false;
-        // for (let wallet of walletList) {
-        //   if (Wallet.isInstalled(wallet.name)) {
-        //     hasWallet = true;
-        //     break;
-        //   } 
-        // }
-        return hasWallet;
-    };
-    exports.hasWallet = hasWallet;
-    const getChainId = () => {
-        const wallet = eth_wallet_2.Wallet.getClientInstance();
-        return isWalletConnected() ? wallet.chainId : defaultChainId;
-    };
+    exports.isClientWalletConnected = isClientWalletConnected;
+    function isRpcWalletConnected() {
+        const wallet = getRpcWallet();
+        return wallet === null || wallet === void 0 ? void 0 : wallet.isConnected;
+    }
+    exports.isRpcWalletConnected = isRpcWalletConnected;
+    function getChainId() {
+        const rpcWallet = getRpcWallet();
+        return rpcWallet === null || rpcWallet === void 0 ? void 0 : rpcWallet.chainId;
+    }
     exports.getChainId = getChainId;
+    function initRpcWallet(defaultChainId) {
+        if (exports.state.rpcWalletId) {
+            return exports.state.rpcWalletId;
+        }
+        const clientWallet = eth_wallet_1.Wallet.getClientInstance();
+        const networkList = Object.values(components_1.application.store.networkMap);
+        const instanceId = clientWallet.initRpcWallet({
+            networks: networkList,
+            defaultChainId,
+            infuraId: components_1.application.store.infuraId,
+            multicalls: components_1.application.store.multicalls
+        });
+        exports.state.rpcWalletId = instanceId;
+        if (clientWallet.address) {
+            const rpcWallet = eth_wallet_1.Wallet.getRpcWalletInstance(instanceId);
+            rpcWallet.address = clientWallet.address;
+        }
+        return instanceId;
+    }
+    exports.initRpcWallet = initRpcWallet;
+    function getRpcWallet() {
+        return eth_wallet_1.Wallet.getRpcWalletInstance(exports.state.rpcWalletId);
+    }
+    exports.getRpcWallet = getRpcWallet;
+    function getClientWallet() {
+        return eth_wallet_1.Wallet.getClientInstance();
+    }
+    exports.getClientWallet = getClientWallet;
 });
-define("@scom/scom-commission-claim/token-selection/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_1) {
+define("@scom/scom-commission-claim/token-selection/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.modalStyle = exports.tokenStyle = exports.buttonStyle = exports.scrollbarStyle = void 0;
-    const Theme = components_1.Styles.Theme.ThemeVars;
-    exports.scrollbarStyle = components_1.Styles.style({
+    const Theme = components_2.Styles.Theme.ThemeVars;
+    exports.scrollbarStyle = components_2.Styles.style({
         $nest: {
             '&::-webkit-scrollbar-track': {
                 borderRadius: '12px',
@@ -113,17 +129,17 @@ define("@scom/scom-commission-claim/token-selection/index.css.ts", ["require", "
             }
         }
     });
-    exports.buttonStyle = components_1.Styles.style({
+    exports.buttonStyle = components_2.Styles.style({
         boxShadow: 'none'
     });
-    exports.tokenStyle = components_1.Styles.style({
+    exports.tokenStyle = components_2.Styles.style({
         $nest: {
             '&:hover': {
                 background: Theme.action.hover
             }
         }
     });
-    exports.modalStyle = components_1.Styles.style({
+    exports.modalStyle = components_2.Styles.style({
         $nest: {
             '.modal': {
                 padding: 0,
@@ -133,13 +149,13 @@ define("@scom/scom-commission-claim/token-selection/index.css.ts", ["require", "
         }
     });
 });
-define("@scom/scom-commission-claim/token-selection/index.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-commission-claim/wallet/index.ts", "@scom/scom-token-list", "@scom/scom-commission-claim/token-selection/index.css.ts"], function (require, exports, components_2, index_1, scom_token_list_1, index_css_1) {
+define("@scom/scom-commission-claim/token-selection/index.tsx", ["require", "exports", "@ijstech/components", "@scom/scom-commission-claim/store/index.ts", "@scom/scom-token-list", "@scom/scom-commission-claim/token-selection/index.css.ts"], function (require, exports, components_3, index_1, scom_token_list_1, index_css_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.TokenSelection = void 0;
-    const Theme = components_2.Styles.Theme.ThemeVars;
+    const Theme = components_3.Styles.Theme.ThemeVars;
     ;
-    let TokenSelection = class TokenSelection extends components_2.Module {
+    let TokenSelection = class TokenSelection extends components_3.Module {
         constructor(parent, options) {
             super(parent, options);
             this._readonly = false;
@@ -163,7 +179,7 @@ define("@scom/scom-commission-claim/token-selection/index.tsx", ["require", "exp
                 if (this.onSelectToken)
                     this.onSelectToken(token);
             };
-            this.$eventBus = components_2.application.EventBus;
+            this.$eventBus = components_3.application.EventBus;
             this.registerEvent();
         }
         ;
@@ -210,7 +226,7 @@ define("@scom/scom-commission-claim/token-selection/index.tsx", ["require", "exp
                 if (token.symbol === nativeToken.symbol) {
                     Object.assign(tokenObject, { isNative: true });
                 }
-                if (!(0, index_1.isWalletConnected)()) {
+                if (!(0, scom_token_list_1.isWalletConnected)()) {
                     Object.assign(tokenObject, {
                         balance: 0,
                     });
@@ -240,9 +256,9 @@ define("@scom/scom-commission-claim/token-selection/index.tsx", ["require", "exp
         }
         updateTokenButton(token) {
             const chainId = (0, index_1.getChainId)();
-            if (token && (0, index_1.isWalletConnected)()) {
+            if (token && (0, scom_token_list_1.isWalletConnected)()) {
                 const tokenIconPath = scom_token_list_1.assets.tokenPath(token, chainId);
-                const icon = new components_2.Icon(this.btnTokens, {
+                const icon = new components_3.Icon(this.btnTokens, {
                     width: 28,
                     height: 28,
                     image: {
@@ -287,17 +303,17 @@ define("@scom/scom-commission-claim/token-selection/index.tsx", ["require", "exp
         }
     };
     TokenSelection = __decorate([
-        (0, components_2.customElements)('commission-claim-token-selection')
+        (0, components_3.customElements)('commission-claim-token-selection')
     ], TokenSelection);
     exports.TokenSelection = TokenSelection;
 });
-define("@scom/scom-commission-claim/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_3) {
+define("@scom/scom-commission-claim/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.tokenSelectionStyle = exports.inputStyle = exports.markdownStyle = exports.imageStyle = void 0;
     // Styles.Theme.defaultTheme.background.modal = "#fff";
     // Styles.Theme.applyTheme(Styles.Theme.defaultTheme);
-    exports.imageStyle = components_3.Styles.style({
+    exports.imageStyle = components_4.Styles.style({
         $nest: {
             '&>img': {
                 maxWidth: 'unset',
@@ -306,10 +322,10 @@ define("@scom/scom-commission-claim/index.css.ts", ["require", "exports", "@ijst
             }
         }
     });
-    exports.markdownStyle = components_3.Styles.style({
+    exports.markdownStyle = components_4.Styles.style({
         overflowWrap: 'break-word'
     });
-    exports.inputStyle = components_3.Styles.style({
+    exports.inputStyle = components_4.Styles.style({
         $nest: {
             '> input': {
                 background: 'transparent',
@@ -319,7 +335,7 @@ define("@scom/scom-commission-claim/index.css.ts", ["require", "exports", "@ijst
             }
         }
     });
-    exports.tokenSelectionStyle = components_3.Styles.style({
+    exports.tokenSelectionStyle = components_4.Styles.style({
         $nest: {
             'i-button.token-button': {
                 justifyContent: 'start'
@@ -327,13 +343,13 @@ define("@scom/scom-commission-claim/index.css.ts", ["require", "exports", "@ijst
         }
     });
 });
-define("@scom/scom-commission-claim/alert/index.tsx", ["require", "exports", "@ijstech/components"], function (require, exports, components_4) {
+define("@scom/scom-commission-claim/alert/index.tsx", ["require", "exports", "@ijstech/components"], function (require, exports, components_5) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.Alert = void 0;
-    const Theme = components_4.Styles.Theme.ThemeVars;
+    const Theme = components_5.Styles.Theme.ThemeVars;
     ;
-    let Alert = class Alert extends components_4.Module {
+    let Alert = class Alert extends components_5.Module {
         get message() {
             return this._message;
         }
@@ -392,7 +408,7 @@ define("@scom/scom-commission-claim/alert/index.tsx", ["require", "exports", "@i
         }
     };
     Alert = __decorate([
-        (0, components_4.customElements)('commission-claim-alert')
+        (0, components_5.customElements)('commission-claim-alert')
     ], Alert);
     exports.Alert = Alert;
     ;
@@ -950,18 +966,18 @@ define("@scom/scom-commission-claim/contracts/scom-commission-proxy-contract/ind
         onProgress
     };
 });
-define("@scom/scom-commission-claim/utils/token.ts", ["require", "exports", "@ijstech/eth-wallet"], function (require, exports, eth_wallet_3) {
+define("@scom/scom-commission-claim/utils/token.ts", ["require", "exports", "@ijstech/eth-wallet"], function (require, exports, eth_wallet_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.registerSendTxEvents = exports.getTokenBalance = exports.getERC20Amount = void 0;
     const getERC20Amount = async (wallet, tokenAddress, decimals) => {
-        let erc20 = new eth_wallet_3.Erc20(wallet, tokenAddress, decimals);
+        let erc20 = new eth_wallet_2.Erc20(wallet, tokenAddress, decimals);
         return await erc20.balance;
     };
     exports.getERC20Amount = getERC20Amount;
     const getTokenBalance = async (token) => {
-        const wallet = eth_wallet_3.Wallet.getInstance();
-        let balance = new eth_wallet_3.BigNumber(0);
+        const wallet = eth_wallet_2.Wallet.getInstance();
+        let balance = new eth_wallet_2.BigNumber(0);
         if (!token)
             return balance;
         if (token.address) {
@@ -974,7 +990,7 @@ define("@scom/scom-commission-claim/utils/token.ts", ["require", "exports", "@ij
     };
     exports.getTokenBalance = getTokenBalance;
     const registerSendTxEvents = (sendTxEventHandlers) => {
-        const wallet = eth_wallet_3.Wallet.getClientInstance();
+        const wallet = eth_wallet_2.Wallet.getClientInstance();
         wallet.registerSendTxEvents({
             transactionHash: (error, receipt) => {
                 if (sendTxEventHandlers.transactionHash) {
@@ -990,7 +1006,7 @@ define("@scom/scom-commission-claim/utils/token.ts", ["require", "exports", "@ij
     };
     exports.registerSendTxEvents = registerSendTxEvents;
 });
-define("@scom/scom-commission-claim/utils/index.ts", ["require", "exports", "@ijstech/eth-wallet", "@scom/scom-commission-claim/utils/token.ts"], function (require, exports, eth_wallet_4, token_1) {
+define("@scom/scom-commission-claim/utils/index.ts", ["require", "exports", "@ijstech/eth-wallet", "@scom/scom-commission-claim/utils/token.ts"], function (require, exports, eth_wallet_3, token_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.registerSendTxEvents = exports.getTokenBalance = exports.getERC20Amount = exports.getImageIpfsUrl = exports.formatNumberWithSeparators = exports.formatNumber = void 0;
@@ -998,12 +1014,12 @@ define("@scom/scom-commission-claim/utils/index.ts", ["require", "exports", "@ij
         let val = value;
         const minValue = '0.0000001';
         if (typeof value === 'string') {
-            val = new eth_wallet_4.BigNumber(value).toNumber();
+            val = new eth_wallet_3.BigNumber(value).toNumber();
         }
         else if (typeof value === 'object') {
             val = value.toNumber();
         }
-        if (val != 0 && new eth_wallet_4.BigNumber(val).lt(minValue)) {
+        if (val != 0 && new eth_wallet_3.BigNumber(val).lt(minValue)) {
             return `<${minValue}`;
         }
         return (0, exports.formatNumberWithSeparators)(val, decimals || 4);
@@ -1041,32 +1057,32 @@ define("@scom/scom-commission-claim/utils/index.ts", ["require", "exports", "@ij
     Object.defineProperty(exports, "getTokenBalance", { enumerable: true, get: function () { return token_1.getTokenBalance; } });
     Object.defineProperty(exports, "registerSendTxEvents", { enumerable: true, get: function () { return token_1.registerSendTxEvents; } });
 });
-define("@scom/scom-commission-claim/API.ts", ["require", "exports", "@ijstech/eth-wallet", "@scom/scom-commission-claim/contracts/scom-commission-proxy-contract/index.ts", "@scom/scom-commission-claim/store/index.ts", "@scom/scom-commission-claim/utils/index.ts"], function (require, exports, eth_wallet_5, index_2, index_3, index_4) {
+define("@scom/scom-commission-claim/API.ts", ["require", "exports", "@ijstech/eth-wallet", "@scom/scom-commission-claim/contracts/scom-commission-proxy-contract/index.ts", "@scom/scom-commission-claim/store/index.ts", "@scom/scom-commission-claim/utils/index.ts"], function (require, exports, eth_wallet_4, index_2, index_3, index_4) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
     exports.claim = exports.getClaimAmount = void 0;
     async function getClaimAmount(token) {
         var _a;
-        const wallet = eth_wallet_5.Wallet.getClientInstance();
+        const wallet = eth_wallet_4.Wallet.getClientInstance();
         const distributorAddress = (0, index_3.getContractAddress)('Proxy');
         const distributor = new index_2.Contracts.Proxy(wallet, distributorAddress);
         const amount = await distributor.getClaimantBalance({
             claimant: wallet.address,
-            token: (_a = token.address) !== null && _a !== void 0 ? _a : eth_wallet_5.Utils.nullAddress
+            token: (_a = token.address) !== null && _a !== void 0 ? _a : eth_wallet_4.Utils.nullAddress
         });
-        return eth_wallet_5.Utils.fromDecimals(amount, token.decimals || 18);
+        return eth_wallet_4.Utils.fromDecimals(amount, token.decimals || 18);
     }
     exports.getClaimAmount = getClaimAmount;
     async function claim(token, callback, confirmationCallback) {
         var _a;
-        const wallet = eth_wallet_5.Wallet.getClientInstance();
+        const wallet = eth_wallet_4.Wallet.getClientInstance();
         const distributorAddress = (0, index_3.getContractAddress)('Proxy');
         const distributor = new index_2.Contracts.Proxy(wallet, distributorAddress);
         (0, index_4.registerSendTxEvents)({
             transactionHash: callback,
             confirmation: confirmationCallback
         });
-        const receipt = await distributor.claim((_a = token.address) !== null && _a !== void 0 ? _a : eth_wallet_5.Utils.nullAddress);
+        const receipt = await distributor.claim((_a = token.address) !== null && _a !== void 0 ? _a : eth_wallet_4.Utils.nullAddress);
         return receipt;
     }
     exports.claim = claim;
@@ -1106,11 +1122,11 @@ define("@scom/scom-commission-claim/data.json.ts", ["require", "exports"], funct
         }
     };
 });
-define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/components", "@scom/scom-commission-claim/store/index.ts", "@scom/scom-commission-claim/wallet/index.ts", "@scom/scom-commission-claim/index.css.ts", "@scom/scom-commission-claim/API.ts", "@scom/scom-commission-claim/data.json.ts", "@scom/scom-commission-claim/utils/index.ts"], function (require, exports, components_5, index_5, index_6, index_css_2, API_1, data_json_1, index_7) {
+define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/components", "@scom/scom-commission-claim/store/index.ts", "@scom/scom-commission-claim/index.css.ts", "@scom/scom-commission-claim/API.ts", "@scom/scom-commission-claim/data.json.ts", "@scom/scom-commission-claim/utils/index.ts", "@ijstech/eth-wallet"], function (require, exports, components_6, index_5, index_css_2, API_1, data_json_1, index_6, eth_wallet_5) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const Theme = components_5.Styles.Theme.ThemeVars;
-    let ScomCommissionClaim = class ScomCommissionClaim extends components_5.Module {
+    const Theme = components_6.Styles.Theme.ThemeVars;
+    let ScomCommissionClaim = class ScomCommissionClaim extends components_6.Module {
         constructor(parent, options) {
             super(parent, options);
             this._data = {
@@ -1120,14 +1136,38 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
             };
             this.tag = {};
             this.defaultEdit = true;
-            this.onWalletConnect = async (connected) => {
-                await this.onSetupPage((connected && !(0, index_6.getChainId)()) || connected);
-            };
+            this.rpcWalletEvents = [];
+            this.clientEvents = [];
             this.onChainChanged = async () => {
-                await this.onSetupPage(true);
+                await this.onSetupPage();
+            };
+            this.onSetupPage = async () => {
+                if (!this.lblAddress.isConnected)
+                    await this.lblAddress.ready();
+                if (!this.imgLogo.isConnected)
+                    await this.imgLogo.ready();
+                if (!this.markdownDescription.isConnected)
+                    await this.markdownDescription.ready();
+                this.lblAddress.caption = (0, index_5.getContractAddress)('Proxy');
+                let url = '';
+                if (!this._data.logo && !this._data.logoUrl && !this._data.description) {
+                    url = 'https://placehold.co/150x100?text=No+Image';
+                }
+                else {
+                    url = (0, index_6.getImageIpfsUrl)(this._data.logo) || this._data.logoUrl;
+                }
+                this.imgLogo.url = url;
+                this.markdownDescription.load(this._data.description || '');
+                try {
+                    await eth_wallet_5.Wallet.getClientInstance().init();
+                }
+                catch (_a) { }
+                if (this.tokenSelection.token) {
+                    this.refetchClaimAmount(this.tokenSelection.token);
+                }
             };
             (0, index_5.setDataFromConfig)(data_json_1.default);
-            this.$eventBus = components_5.application.EventBus;
+            this.$eventBus = components_6.application.EventBus;
             this.registerEvent();
         }
         static async create(options, parent) {
@@ -1136,19 +1176,7 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
             return self;
         }
         registerEvent() {
-            this.$eventBus.register(this, "isWalletConnected" /* EventId.IsWalletConnected */, () => this.onWalletConnect(true));
-            this.$eventBus.register(this, "IsWalletDisconnected" /* EventId.IsWalletDisconnected */, () => this.onWalletConnect(false));
-            this.$eventBus.register(this, "chainChanged" /* EventId.chainChanged */, this.onChainChanged);
-        }
-        async onSetupPage(isWalletConnected) {
-            if (isWalletConnected) {
-                if (!this.lblAddress.isConnected)
-                    await this.lblAddress.ready();
-                this.lblAddress.caption = (0, index_5.getContractAddress)('Proxy');
-                if (this.tokenSelection.token) {
-                    this.refetchClaimAmount(this.tokenSelection.token);
-                }
-            }
+            this.clientEvents.push(this.$eventBus.register(this, "chainChanged" /* EventId.chainChanged */, this.onChainChanged));
         }
         get description() {
             var _a;
@@ -1185,6 +1213,13 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
         set showHeader(value) {
             this._data.showHeader = value;
         }
+        get showFooter() {
+            var _a;
+            return (_a = this._data.showFooter) !== null && _a !== void 0 ? _a : true;
+        }
+        set showFooter(value) {
+            this._data.showFooter = value;
+        }
         get defaultChainId() {
             return this._data.defaultChainId;
         }
@@ -1195,8 +1230,38 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
             return this._data;
         }
         async setData(data) {
+            var _a;
             this._data = data;
-            await this.refreshDApp();
+            (0, index_5.initRpcWallet)(this.defaultChainId);
+            const rpcWallet = (0, index_5.getRpcWallet)();
+            const event = rpcWallet.registerWalletEvent(this, eth_wallet_5.Constants.RpcWalletEvent.Connected, async (connected) => {
+                await this.onSetupPage();
+            });
+            this.rpcWalletEvents.push(event);
+            const containerData = {
+                wallets: this.wallets,
+                networks: this.networks,
+                showHeader: this.showHeader,
+                showFooter: this.showFooter,
+                defaultChainId: this.defaultChainId,
+                rpcWalletId: (rpcWallet === null || rpcWallet === void 0 ? void 0 : rpcWallet.instanceId) || ''
+            };
+            if ((_a = this.dappContainer) === null || _a === void 0 ? void 0 : _a.setData) {
+                this.dappContainer.setData(containerData);
+            }
+            await this.onSetupPage();
+        }
+        onHide() {
+            this.dappContainer.onHide();
+            const rpcWallet = (0, index_5.getRpcWallet)();
+            for (let event of this.rpcWalletEvents) {
+                rpcWallet.unregisterWalletEvent(event);
+            }
+            this.rpcWalletEvents = [];
+            for (let event of this.clientEvents) {
+                event.unregister();
+            }
+            this.clientEvents = [];
         }
         getTag() {
             return this.tag;
@@ -1232,26 +1297,6 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
             this.updateStyle('--text-primary', (_b = this.tag[themeVar]) === null || _b === void 0 ? void 0 : _b.fontColor);
             this.updateStyle('--background-main', (_c = this.tag[themeVar]) === null || _c === void 0 ? void 0 : _c.backgroundColor);
         }
-        async refreshDApp() {
-            var _a;
-            let url;
-            if (!this._data.logo && !this._data.logoUrl && !this._data.description) {
-                url = 'https://placehold.co/150x100?text=No+Image';
-            }
-            else {
-                url = (0, index_7.getImageIpfsUrl)(this._data.logo) || this._data.logoUrl;
-            }
-            this.imgLogo.url = url;
-            this.markdownDescription.load(this._data.description || '');
-            const data = {
-                wallets: this.wallets,
-                networks: this.networks,
-                showHeader: this.showHeader,
-                defaultChainId: this.defaultChainId
-            };
-            if ((_a = this.dappContainer) === null || _a === void 0 ? void 0 : _a.setData)
-                this.dappContainer.setData(data);
-        }
         async init() {
             this.isReadyCallbackQueued = true;
             super.init();
@@ -1264,9 +1309,9 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                 const networks = this.getAttribute('networks', true);
                 const wallets = this.getAttribute('wallets', true);
                 const showHeader = this.getAttribute('showHeader', true);
+                const showFooter = this.getAttribute('showFooter', true);
                 const defaultChainId = this.getAttribute('defaultChainId', true);
-                await this.setData({ description, logo, logoUrl, networks, wallets, showHeader, defaultChainId });
-                await this.onSetupPage((0, index_6.isWalletConnected)());
+                await this.setData({ description, logo, logoUrl, networks, wallets, showHeader, showFooter, defaultChainId });
             }
             this.isReadyCallbackQueued = false;
             this.executeReadyCallback();
@@ -1279,8 +1324,8 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                 };
             };
             const defaultTag = {
-                dark: getColors(components_5.Styles.Theme.darkTheme),
-                light: getColors(components_5.Styles.Theme.defaultTheme)
+                dark: getColors(components_6.Styles.Theme.darkTheme),
+                light: getColors(components_6.Styles.Theme.defaultTheme)
             };
             this.setTag(defaultTag);
         }
@@ -1517,7 +1562,7 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
             ];
         }
         render() {
-            return (this.$render("i-scom-dapp-container", { id: "dappContainer" },
+            return (this.$render("i-scom-dapp-container", { id: "dappContainer", showFooter: true, showHeader: true },
                 this.$render("i-panel", { background: { color: Theme.background.main } },
                     this.$render("i-grid-layout", { id: 'gridDApp', maxWidth: "500px", margin: { right: "auto", left: "auto", top: '0.5rem', bottom: '0.5rem' }, height: '100%' },
                         this.$render("i-vstack", { gap: "0.5rem", padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, verticalAlignment: 'space-between', horizontalAlignment: "center" },
@@ -1542,8 +1587,8 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
         }
     };
     ScomCommissionClaim = __decorate([
-        components_5.customModule,
-        (0, components_5.customElements)('i-scom-commission-claim')
+        components_6.customModule,
+        (0, components_6.customElements)('i-scom-commission-claim')
     ], ScomCommissionClaim);
     exports.default = ScomCommissionClaim;
 });

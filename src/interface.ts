@@ -30,21 +30,8 @@ export interface IConfig {
   wallets: IWalletPlugin[];
   networks: INetworkConfig[];
   showHeader?: boolean;
+  showFooter?: boolean;
 }
-
-export interface ITokenObject {
-  address?: string;
-  name: string;
-  decimals: number;
-  symbol: string;
-  status?: boolean | null;
-  logoURI?: string;
-  isCommon?: boolean | null;
-  balance?: string | number;
-  isNative?: boolean | null;
-  isWETH?: boolean | null;
-  isNew?: boolean | null;
-};
 
 export interface IWalletPlugin {
   name: string;
