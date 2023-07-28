@@ -1,4 +1,4 @@
-import { BigNumber } from "@ijstech/eth-wallet";
+import { BigNumber, ISendTxEventsOptions, Wallet } from "@ijstech/eth-wallet";
 
 export const formatNumber = (value: any, decimals?: number) => {
   let val = value;
@@ -26,14 +26,13 @@ export const formatNumberWithSeparators = (value: number, precision?: number) =>
     }
 
     if (outputStr.length > 18) {
-      outputStr = outputStr.substr(0, 18) + '...'
+      outputStr = outputStr.substring(0, 18) + '...';
     }
     return outputStr;
   }
-  else {
-    return value.toLocaleString('en-US');
-  }
+  return value.toLocaleString('en-US');
 }
+
 const IPFS_BASE_URL = "https://ipfs.scom.dev/ipfs/";
 
 export const getImageIpfsUrl = (url: string) => {
@@ -42,8 +41,18 @@ export const getImageIpfsUrl = (url: string) => {
   return url;
 }
 
-export {
-  getERC20Amount,
-  getTokenBalance,
-  registerSendTxEvents
-} from './token';
+export const registerSendTxEvents = (sendTxEventHandlers: ISendTxEventsOptions) => {
+  const wallet = Wallet.getClientInstance();
+  wallet.registerSendTxEvents({
+    transactionHash: (error: Error, receipt?: string) => {
+      if (sendTxEventHandlers.transactionHash) {
+        sendTxEventHandlers.transactionHash(error, receipt);
+      }
+    },
+    confirmation: (receipt: any) => {
+      if (sendTxEventHandlers.confirmation) {
+        sendTxEventHandlers.confirmation(receipt);
+      }
+    },
+  })
+}
