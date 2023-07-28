@@ -1,7 +1,5 @@
 import { Styles } from "@ijstech/components";
-
-// Styles.Theme.defaultTheme.background.modal = "#fff";
-// Styles.Theme.applyTheme(Styles.Theme.defaultTheme);
+const Theme = Styles.Theme.ThemeVars;
 
 export const imageStyle = Styles.style({
   $nest: {
@@ -14,7 +12,8 @@ export const imageStyle = Styles.style({
 })
 
 export const markdownStyle = Styles.style({
-  overflowWrap: 'break-word'
+  overflowWrap: 'break-word',
+  color: Theme.text.primary
 })
 
 export const inputStyle = Styles.style({
@@ -30,8 +29,12 @@ export const inputStyle = Styles.style({
 
 export const tokenSelectionStyle = Styles.style({
   $nest: {
-    'i-button.token-button': {
-      justifyContent: 'start'
+    'i-modal': {
+      minWidth: 'auto !important',
+      maxWidth: '140px !important'
+    },
+    '.modal': {
+      minWidth: 'auto !important',
     }
   }
 })

@@ -1,11 +1,11 @@
 import { Utils, Wallet } from '@ijstech/eth-wallet';
 import { Contracts as ProxyContracts } from './contracts/scom-commission-proxy-contract/index';
-import { getContractAddress } from './store/index';
+import { getContractAddress, getRpcWallet } from './store/index';
 import { registerSendTxEvents } from './utils/index';
 import { ITokenObject } from '@scom/scom-token-list';
 
 async function getClaimAmount(token: ITokenObject) {
-  const wallet = Wallet.getClientInstance();
+  const wallet = getRpcWallet();
   const distributorAddress = getContractAddress('Proxy');
   const distributor = new ProxyContracts.Proxy(wallet, distributorAddress);
 

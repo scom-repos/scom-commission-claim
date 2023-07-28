@@ -1,9 +1,4 @@
 ## Step 1: Install packages
-Create a new directory named `repos`, go into it and run the following commands:
-```
-git clone https://github.com/scom-repos/commission-proxy.git
-```
-Go back to the base directory and run the following command:
 ```sh
 docker-compose up install
 ```
@@ -12,8 +7,15 @@ docker-compose up install
 docker-compose up build
 ```
 
-## Step 3: Run a dev server
+### Test
+## Step 3: Install packages
 ```sh
-docker-compose up -d serve
+docker-compose up installTest
 ```
-Access the dev server via http://127.0.0.1:8080/
+
+## Step 4: Build and bundle library
+```sh
+docker-compose up test
+```
+
+Access the dev server via http://127.0.0.1:8034/

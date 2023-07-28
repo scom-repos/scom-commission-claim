@@ -7,23 +7,24 @@ import {
   Styles,
   Button,
   Container,
-  IEventBus,
   application,
   customElements,
   ControlElement,
   IDataSchema
 } from '@ijstech/components';
-import { IConfig, INetworkConfig, IWalletPlugin } from './interface';
-import { EventId, getContractAddress, getRpcWallet, initRpcWallet, isRpcWalletConnected, setDataFromConfig, getChainId } from './store/index';
-import { TokenSelection } from './token-selection/index';
+import { IConfig, INetworkConfig } from './interface';
+import { getContractAddress, getRpcWallet, initRpcWallet, isRpcWalletConnected, setDataFromConfig, getChainId, isClientWalletConnected } from './store/index';
 import { imageStyle, markdownStyle, tokenSelectionStyle } from './index.css';
-import { Alert } from './alert/index';
 import { claim, getClaimAmount } from './API';
 import ScomDappContainer from '@scom/scom-dapp-container';
 import configData from './data.json';
-import { getImageIpfsUrl } from './utils/index';
-import { ITokenObject } from '@scom/scom-token-list';
-import { Constants, Wallet } from '@ijstech/eth-wallet';
+import { formatNumber, getImageIpfsUrl } from './utils/index';
+import { ITokenObject, tokenStore } from '@scom/scom-token-list';
+import { Constants, IEventBusRegistry, Wallet } from '@ijstech/eth-wallet';
+import ScomWalletModal, { IWalletPlugin } from '@scom/scom-wallet-modal';
+import ScomTokenInput from '@scom/scom-token-input';
+import ScomTxStatusModal from '@scom/scom-tx-status-modal';
+import formSchema from './formSchema.json';
 
 const Theme = Styles.Theme.ThemeVars;
 
@@ -42,7 +43,7 @@ interface ScomCommissionClaimElement extends ControlElement {
 declare global {
   namespace JSX {
     interface IntrinsicElements {
-      ["i-scom-commission-claim"]: ScomCommissionClaimElement;
+      ['i-scom-commission-claim']: ScomCommissionClaimElement;
     }
   }
 }
@@ -54,31 +55,25 @@ export default class ScomCommissionClaim extends Module {
   private markdownDescription: Markdown;
   private lbClaimable: Label;
   private btnClaim: Button;
-  private tokenSelection: TokenSelection;
-  private mdAlert: Alert;
+  private tokenSelection: ScomTokenInput;
+  private txStatusModal: ScomTxStatusModal;
   private lblAddress: Label;
   private dappContainer: ScomDappContainer;
+  private mdWallet: ScomWalletModal;
 
   private _data: IConfig = {
     defaultChainId: 0,
     wallets: [],
     networks: []
   };
-  private $eventBus: IEventBus;
   tag: any = {};
   defaultEdit: boolean = true;
-  readonly onConfirm: () => Promise<void>;
-  readonly onDiscard: () => Promise<void>;
-  readonly onEdit: () => Promise<void>;
 
-  private rpcWalletEvents: any = [];
-  private clientEvents: any = [];
+  private rpcWalletEvents: IEventBusRegistry[] = [];
 
-  constructor(parent?: Container, options?: any) {
+  constructor(parent?: Container, options?: ScomCommissionClaimElement) {
     super(parent, options);
     setDataFromConfig(configData);
-    this.$eventBus = application.EventBus;
-    this.registerEvent();
   }
 
   static async create(options?: ScomCommissionClaimElement, parent?: Container) {
@@ -87,15 +82,14 @@ export default class ScomCommissionClaim extends Module {
     return self;
   }
 
-  private registerEvent() {
-    this.clientEvents.push(this.$eventBus.register(this, EventId.chainChanged, this.onChainChanged))
-  }
-
   private onChainChanged = async () => {
-    await this.onSetupPage();
+    if (this.tokenSelection) {
+      this.tokenSelection.token = undefined;
+    }
+    await this.refreshWidget();
   }
 
-  private onSetupPage = async () => {
+  private refreshWidget = async () => {
     if (!this.lblAddress.isConnected) await this.lblAddress.ready();
     if (!this.imgLogo.isConnected) await this.imgLogo.ready();
     if (!this.markdownDescription.isConnected) await this.markdownDescription.ready();
@@ -108,14 +102,35 @@ export default class ScomCommissionClaim extends Module {
     }
     this.imgLogo.url = url;
     this.markdownDescription.load(this._data.description || '');
-    try {
-      await Wallet.getClientInstance().init();
-    } catch { }
-    if (this.tokenSelection.token) {
-      this.refetchClaimAmount(this.tokenSelection.token);
+    await this.initWallet();
+    this.updateBtnClaim(false);
+    this.refetchClaimAmount(this.tokenSelection.token);
+  }
+
+  private updateBtnClaim = async (enabled: boolean) => {
+    if (!this.btnClaim.isConnected) await this.btnClaim.ready();
+    if (!isClientWalletConnected()) {
+      this.btnClaim.enabled = true;
+      this.btnClaim.caption = 'Connect Wallet';
+    } else if (!isRpcWalletConnected()) {
+      this.btnClaim.enabled = true;
+      this.btnClaim.caption = 'Switch Network';
+    } else {
+      this.btnClaim.caption = 'Claim';
+      this.btnClaim.enabled = enabled;
     }
   }
-  
+
+  private initWallet = async () => {
+    try {
+      await Wallet.getClientInstance().init();
+      const rpcWallet = getRpcWallet();
+      await rpcWallet.init();
+    } catch (err) {
+      console.log(err);
+    }
+  }
+
   get description() {
     return this._data.description ?? '';
   }
@@ -175,10 +190,13 @@ export default class ScomCommissionClaim extends Module {
     this._data = data;
     initRpcWallet(this.defaultChainId);
     const rpcWallet = getRpcWallet();
-    const event = rpcWallet.registerWalletEvent(this, Constants.RpcWalletEvent.Connected, async (connected: boolean) => {
-      await this.onSetupPage();
+    const chainChangedEvent = rpcWallet.registerWalletEvent(this, Constants.RpcWalletEvent.ChainChanged, async (chainId: number) => {
+      this.onChainChanged();
     });
-    this.rpcWalletEvents.push(event);
+    const connectedEvent = rpcWallet.registerWalletEvent(this, Constants.RpcWalletEvent.Connected, async (connected: boolean) => {
+      await this.refreshWidget();
+    });
+    this.rpcWalletEvents.push(chainChangedEvent, connectedEvent);
     const containerData: any = {
       wallets: this.wallets,
       networks: this.networks,
@@ -190,7 +208,10 @@ export default class ScomCommissionClaim extends Module {
     if (this.dappContainer?.setData) {
       this.dappContainer.setData(containerData)
     }
-    await this.onSetupPage();
+    if (rpcWallet.instanceId && this.tokenSelection) {
+      this.tokenSelection.rpcWalletId = rpcWallet.instanceId;
+    }
+    await this.refreshWidget();
   }
 
   onHide() {
@@ -200,17 +221,13 @@ export default class ScomCommissionClaim extends Module {
       rpcWallet.unregisterWalletEvent(event);
     }
     this.rpcWalletEvents = [];
-    for (let event of this.clientEvents) {
-      event.unregister();
-    }
-    this.clientEvents = [];
   }
 
   private getTag() {
     return this.tag;
   }
 
-  private updateTag(type: 'light'|'dark', value: any) {
+  private updateTag(type: 'light' | 'dark', value: any) {
     this.tag[type] = this.tag[type] ?? {};
     for (let prop in value) {
       if (value.hasOwnProperty(prop))
@@ -258,7 +275,7 @@ export default class ScomCommissionClaim extends Module {
       const showFooter = this.getAttribute('showFooter', true);
       const defaultChainId = this.getAttribute('defaultChainId', true);
 
-      await this.setData({description, logo, logoUrl, networks, wallets, showHeader, showFooter, defaultChainId});
+      await this.setData({ description, logo, logoUrl, networks, wallets, showHeader, showFooter, defaultChainId });
     }
     this.isReadyCallbackQueued = false;
     this.executeReadyCallback();
@@ -278,10 +295,15 @@ export default class ScomCommissionClaim extends Module {
     this.setTag(defaultTag);
   }
 
-  private async refetchClaimAmount(token: ITokenObject) {
+  private async refetchClaimAmount(token?: ITokenObject) {
+    if (!token) {
+      this.lbClaimable.caption = '0.00';
+      this.updateBtnClaim(false);
+      return;
+    };
     const claimAmount = await getClaimAmount(token);
-    this.lbClaimable.caption = claimAmount.toFixed(4);
-    this.btnClaim.enabled = claimAmount.gt(0);
+    this.lbClaimable.caption = `${formatNumber(claimAmount)} ${token.symbol || ''}`;
+    this.updateBtnClaim(claimAmount.gt(0));
   }
 
   private async selectToken(token: ITokenObject) {
@@ -289,125 +311,37 @@ export default class ScomCommissionClaim extends Module {
   }
 
   private async onClaim() {
-    this.mdAlert.message = {
+    if (!isClientWalletConnected()) {
+      if (this.mdWallet) {
+        await application.loadPackage('@scom/scom-wallet-modal', '*');
+        this.mdWallet.networks = this.networks;
+        this.mdWallet.wallets = this.wallets;
+        this.mdWallet.showModal();
+      }
+      return;
+    }
+    if (!isRpcWalletConnected()) {
+      const chainId = getChainId();
+      const clientWallet = Wallet.getClientInstance();
+      await clientWallet.switchNetwork(chainId);
+      return;
+    }
+    this.txStatusModal.message = {
       status: 'warning',
       content: 'Confirming'
     };
-    this.mdAlert.showModal();
+    this.txStatusModal.showModal();
     claim(this.tokenSelection.token, (error: Error, receipt?: string) => {
       if (error) {
-        this.mdAlert.message = {
+        this.txStatusModal.message = {
           status: 'error',
-          content: error.message
+          content: error
         };
-        this.mdAlert.showModal();
+        this.txStatusModal.showModal();
       }
     }, () => {
       this.refetchClaimAmount(this.tokenSelection.token);
     });
-  }
-
-  private getEmbedderActions() {
-    const propertiesSchema: IDataSchema = {
-      type: 'object',
-      properties: {
-        "description": {
-          type: 'string',
-          format: 'multi'
-        }
-      }
-    };
-    const themeSchema: IDataSchema = {
-      type: 'object',
-      properties: {
-        dark: {
-          type: 'object',
-          properties: {
-            backgroundColor: {
-              type: 'string',
-              format: 'color',
-              readOnly: true
-            },
-            fontColor: {
-              type: 'string',
-              format: 'color',
-              readOnly: true
-            }
-          }
-        },
-        light: {
-          type: 'object',
-          properties: {
-            backgroundColor: {
-              type: 'string',
-              format: 'color',
-              readOnly: true
-            },
-            fontColor: {
-              type: 'string',
-              format: 'color',
-              readOnly: true
-            }
-          }
-        }
-      }
-    }
-
-    return this._getActions(propertiesSchema, themeSchema);
-  }
-
-  private getActions() {
-    const propertiesSchema: IDataSchema = {
-      type: 'object',
-      properties: {
-        "description": {
-          type: 'string',
-          format: 'multi'
-        },
-        "logo": {
-          type: 'string',
-          format: 'data-cid'
-        },
-        "logoUrl": {
-          type: 'string',
-          title: 'Logo URL'
-        }
-      }
-    };
-
-    const themeSchema: IDataSchema = {
-      type: 'object',
-      properties: {
-        dark: {
-          type: 'object',
-          properties: {
-            backgroundColor: {
-              type: 'string',
-              format: 'color'
-            },
-            fontColor: {
-              type: 'string',
-              format: 'color'
-            }
-          }
-        },
-        light: {
-          type: 'object',
-          properties: {
-            backgroundColor: {
-              type: 'string',
-              format: 'color'
-            },
-            fontColor: {
-              type: 'string',
-              format: 'color'
-            }
-          }
-        }
-      }
-    }
-
-    return this._getActions(propertiesSchema, themeSchema);
   }
 
   private _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema) {
@@ -474,11 +408,13 @@ export default class ScomCommissionClaim extends Module {
       {
         name: 'Builder Configurator',
         target: 'Builders',
-        getActions: this.getActions.bind(this),
+        getActions: () => {
+          return this._getActions(formSchema.general.dataSchema as IDataSchema, formSchema.theme.dataSchema as IDataSchema);
+        },
         getData: this.getData.bind(this),
         setData: async (data: IConfig) => {
           const defaultData = configData.defaultBuilderData;
-          await this.setData({...defaultData, ...data});
+          await this.setData({ ...defaultData, ...data });
         },
         getTag: this.getTag.bind(this),
         setTag: this.setTag.bind(this)
@@ -486,7 +422,9 @@ export default class ScomCommissionClaim extends Module {
       {
         name: 'Emdedder Configurator',
         target: 'Embedders',
-        getActions: this.getEmbedderActions.bind(this),
+        getActions: () => {
+          return this._getActions(formSchema.general.embedderSchema as IDataSchema, formSchema.theme.dataSchema as IDataSchema);
+        },
         getLinkParams: () => {
           const data = this._data || {};
           return {
@@ -516,61 +454,70 @@ export default class ScomCommissionClaim extends Module {
   render() {
     return (
       <i-scom-dapp-container id="dappContainer" showFooter={true} showHeader={true}>
-        <i-panel background={{color: Theme.background.main}}>
+        <i-panel background={{ color: Theme.background.main }}>
           <i-grid-layout
-            id='gridDApp'
+            id="gridDApp"
             maxWidth="500px"
-            margin={{right:"auto", left:"auto", top: '0.5rem', bottom: '0.5rem'}}
-            height='100%'
+            margin={{ right: "auto", left: "auto", top: '0.5rem', bottom: '0.5rem' }}
+            height="100%"
           >
-            <i-vstack 
-              gap="0.5rem" 
-              padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }} 
-              verticalAlignment='space-between' horizontalAlignment="center">
-              <i-label caption="Commission Claim" font={{ bold: true, size: '1rem' }}></i-label>
-              <i-vstack gap='0.25rem'>
-                <i-image id='imgLogo' class={imageStyle} height={100}></i-image>
+            <i-vstack
+              gap={8}
+              padding={{ top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }}
+              verticalAlignment="space-between" horizontalAlignment="center"
+            >
+              <i-label caption="Commission Claim" font={{ bold: true, size: '1rem' }} />
+              <i-vstack gap={8}>
+                <i-image id="imgLogo" class={imageStyle} height={100} />
                 <i-markdown
-                  id='markdownDescription'
+                  id="markdownDescription"
                   class={markdownStyle}
-                  width='100%'
-                  height='100%'
-                ></i-markdown>
+                  width="100%"
+                  height="100%"
+                />
               </i-vstack>
-              <i-vstack gap='0.25rem'>
-                <i-hstack width="100%" verticalAlignment="center">
-                  <i-label caption='Token:' font={{ size: '0.875rem' }}></i-label>
-                  <commission-claim-token-selection
-                    id='tokenSelection'
+              <i-vstack gap={12}>
+                <i-hstack gap={8} width="100%" verticalAlignment="center">
+                  <i-label caption="Token:" font={{ size: '0.875rem' }} margin={{ top: 8 }} />
+                  <i-scom-token-input
+                    id="tokenSelection"
+                    type="combobox"
+                    isBalanceShown={false}
+                    isInputShown={false}
+                    isCommonShown={false}
+                    isBtnMaxShown={false}
+                    isSortBalanceShown={false}
                     class={tokenSelectionStyle}
-                    onSelectToken={this.selectToken.bind(this)}
-                  ></commission-claim-token-selection>
+                    onSelectToken={this.selectToken}
+                  />
                 </i-hstack>
                 <i-hstack width="100%" gap="0.5rem" verticalAlignment="center">
-                  <i-label caption='Claimable:' font={{ size: '0.875rem' }}></i-label>
-                  <i-label id='lbClaimable' font={{ size: '0.875rem' }}></i-label>
-                </i-hstack>                
+                  <i-label caption="Claimable:" font={{ size: '0.875rem' }} />
+                  <i-label id="lbClaimable" caption="0.00" font={{ size: '0.875rem' }} />
+                </i-hstack>
                 <i-hstack horizontalAlignment="center" verticalAlignment='center' gap="8px">
                   <i-button
-                    id='btnClaim'
-                    width='100px'
-                    caption='Claim'
+                    id="btnClaim"
+                    width={180}
+                    caption="Claim"
                     padding={{ top: '0.5rem', bottom: '0.5rem', left: '1rem', right: '1rem' }}
                     font={{ size: '0.875rem', color: Theme.colors.primary.contrastText }}
                     rightIcon={{ visible: false, fill: Theme.colors.primary.contrastText }}
-                    onClick={this.onClaim.bind(this)}
+                    background={{ color: Theme.colors.primary.main }}
+                    onClick={this.onClaim}
                     enabled={false}
-                  ></i-button>
+                  />
                 </i-hstack>
               </i-vstack>
-              <i-vstack gap='0.25rem'>
-                <i-label id='lblRef' font={{ size: '0.75rem' }}></i-label>
-                <i-label id='lblAddress' font={{ size: '0.75rem' }} overflowWrap='anywhere'></i-label>
+              <i-vstack gap={8}>
+                <i-label id="lblRef" font={{ size: '0.75rem' }} />
+                <i-label id="lblAddress" font={{ size: '0.75rem' }} overflowWrap="anywhere" />
               </i-vstack>
-              <i-label caption='Terms & Condition' font={{ size: '0.75rem' }} link={{ href: 'https://docs.scom.dev/' }}></i-label>
+              <i-label caption="Terms & Condition" font={{ size: '0.75rem' }} link={{ href: 'https://docs.scom.dev/' }} />
             </i-vstack>
           </i-grid-layout>
-          <commission-claim-alert id='mdAlert'></commission-claim-alert>
+          <i-scom-tx-status-modal id="txStatusModal" />
+          <i-scom-wallet-modal id="mdWallet" wallets={[]} />
         </i-panel>
       </i-scom-dapp-container>
     )
