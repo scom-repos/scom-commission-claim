@@ -13,13 +13,13 @@ import {
   IDataSchema
 } from '@ijstech/components';
 import { IConfig, INetworkConfig } from './interface';
-import { getContractAddress, getRpcWallet, initRpcWallet, isRpcWalletConnected, setDataFromConfig, getChainId, isClientWalletConnected } from './store/index';
+import { isClientWalletConnected, State } from './store/index';
 import { imageStyle, markdownStyle, tokenSelectionStyle } from './index.css';
 import { claim, getClaimAmount } from './API';
 import ScomDappContainer from '@scom/scom-dapp-container';
 import configData from './data.json';
-import { formatNumber, getImageIpfsUrl } from './utils/index';
-import { ITokenObject, tokenStore } from '@scom/scom-token-list';
+import { formatNumber } from './utils/index';
+import { ITokenObject } from '@scom/scom-token-list';
 import { Constants, IEventBusRegistry, Wallet } from '@ijstech/eth-wallet';
 import ScomWalletModal, { IWalletPlugin } from '@scom/scom-wallet-modal';
 import ScomTokenInput from '@scom/scom-token-input';
@@ -51,6 +51,7 @@ declare global {
 @customModule
 @customElements('i-scom-commission-claim')
 export default class ScomCommissionClaim extends Module {
+  private state: State;
   private imgLogo: Image;
   private markdownDescription: Markdown;
   private lbClaimable: Label;
@@ -73,7 +74,20 @@ export default class ScomCommissionClaim extends Module {
 
   constructor(parent?: Container, options?: ScomCommissionClaimElement) {
     super(parent, options);
-    setDataFromConfig(configData);
+    this.state = new State(configData);
+  }
+
+  removeRpcWalletEvents() {
+    const rpcWallet = this.rpcWallet;
+    for (let event of this.rpcWalletEvents) {
+      rpcWallet.unregisterWalletEvent(event);
+    }
+    this.rpcWalletEvents = [];
+  }
+
+  onHide() {
+    this.dappContainer.onHide();
+    this.removeRpcWalletEvents();
   }
 
   static async create(options?: ScomCommissionClaimElement, parent?: Container) {
@@ -93,12 +107,14 @@ export default class ScomCommissionClaim extends Module {
     if (!this.lblAddress.isConnected) await this.lblAddress.ready();
     if (!this.imgLogo.isConnected) await this.imgLogo.ready();
     if (!this.markdownDescription.isConnected) await this.markdownDescription.ready();
-    this.lblAddress.caption = getContractAddress('Proxy');
+    this.lblAddress.caption = this.state.getContractAddress('Proxy');
     let url = '';
     if (!this._data.logo && !this._data.logoUrl && !this._data.description) {
       url = 'https://placehold.co/150x100?text=No+Image';
+    } else if (this._data.logo?.startsWith('ipfs://')) {
+      url = this._data.logo.replace('ipfs://', this.state.ipfsGatewayUrl);
     } else {
-      url = getImageIpfsUrl(this._data.logo) || this._data.logoUrl;
+      url = this._data.logo || this._data.logoUrl;
     }
     this.imgLogo.url = url;
     this.markdownDescription.load(this._data.description || '');
@@ -112,7 +128,7 @@ export default class ScomCommissionClaim extends Module {
     if (!isClientWalletConnected()) {
       this.btnClaim.enabled = true;
       this.btnClaim.caption = 'Connect Wallet';
-    } else if (!isRpcWalletConnected()) {
+    } else if (!this.state.isRpcWalletConnected()) {
       this.btnClaim.enabled = true;
       this.btnClaim.caption = 'Switch Network';
     } else {
@@ -124,12 +140,20 @@ export default class ScomCommissionClaim extends Module {
   private initWallet = async () => {
     try {
       await Wallet.getClientInstance().init();
-      const rpcWallet = getRpcWallet();
-      await rpcWallet.init();
+      await this.rpcWallet.init();
     } catch (err) {
       console.log(err);
     }
   }
+
+  private get chainId() {
+    return this.state.getChainId();
+  }
+
+  private get rpcWallet() {
+    return this.state.getRpcWallet();
+  }
+
 
   get description() {
     return this._data.description ?? '';
@@ -186,41 +210,37 @@ export default class ScomCommissionClaim extends Module {
     return this._data;
   }
 
-  private async setData(data: IConfig) {
-    this._data = data;
-    initRpcWallet(this.defaultChainId);
-    const rpcWallet = getRpcWallet();
+  private async resetRpcWallet() {
+    this.removeRpcWalletEvents();
+    const rpcWalletId = await this.state.initRpcWallet(this.defaultChainId);
+    const rpcWallet = this.rpcWallet;
     const chainChangedEvent = rpcWallet.registerWalletEvent(this, Constants.RpcWalletEvent.ChainChanged, async (chainId: number) => {
       this.onChainChanged();
     });
     const connectedEvent = rpcWallet.registerWalletEvent(this, Constants.RpcWalletEvent.Connected, async (connected: boolean) => {
-      await this.refreshWidget();
+      this.refreshWidget();
     });
     this.rpcWalletEvents.push(chainChangedEvent, connectedEvent);
-    const containerData: any = {
+
+    const data = {
+      defaultChainId: this.defaultChainId,
       wallets: this.wallets,
       networks: this.networks,
       showHeader: this.showHeader,
       showFooter: this.showFooter,
-      defaultChainId: this.defaultChainId,
       rpcWalletId: rpcWallet?.instanceId || ''
     }
-    if (this.dappContainer?.setData) {
-      this.dappContainer.setData(containerData)
-    }
-    if (rpcWallet.instanceId && this.tokenSelection) {
-      this.tokenSelection.rpcWalletId = rpcWallet.instanceId;
-    }
-    await this.refreshWidget();
+    if (this.dappContainer?.setData) this.dappContainer.setData(data);
   }
 
-  onHide() {
-    this.dappContainer.onHide();
-    const rpcWallet = getRpcWallet();
-    for (let event of this.rpcWalletEvents) {
-      rpcWallet.unregisterWalletEvent(event);
+  private async setData(data: IConfig) {
+    this._data = data;
+    await this.resetRpcWallet();
+    if (!this.tokenSelection.isConnected) await this.tokenSelection.ready();
+    if (this.tokenSelection.rpcWalletId !== this.rpcWallet.instanceId) {
+      this.tokenSelection.rpcWalletId = this.rpcWallet.instanceId;
     }
-    this.rpcWalletEvents = [];
+    await this.refreshWidget();
   }
 
   private getTag() {
@@ -260,27 +280,6 @@ export default class ScomCommissionClaim extends Module {
     this.updateStyle('--background-main', this.tag[themeVar]?.backgroundColor);
   }
 
-  async init() {
-    this.isReadyCallbackQueued = true;
-    super.init();
-    this.initTag();
-    const lazyLoad = this.getAttribute('lazyLoad', true, false);
-    if (!lazyLoad) {
-      const description = this.getAttribute('description', true);
-      const logo = this.getAttribute('logo', true);
-      const logoUrl = this.getAttribute('logoUrl', true);
-      const networks = this.getAttribute('networks', true);
-      const wallets = this.getAttribute('wallets', true);
-      const showHeader = this.getAttribute('showHeader', true);
-      const showFooter = this.getAttribute('showFooter', true);
-      const defaultChainId = this.getAttribute('defaultChainId', true);
-
-      await this.setData({ description, logo, logoUrl, networks, wallets, showHeader, showFooter, defaultChainId });
-    }
-    this.isReadyCallbackQueued = false;
-    this.executeReadyCallback();
-  }
-
   private initTag() {
     const getColors = (vars: any) => {
       return {
@@ -301,7 +300,7 @@ export default class ScomCommissionClaim extends Module {
       this.updateBtnClaim(false);
       return;
     };
-    const claimAmount = await getClaimAmount(token);
+    const claimAmount = await getClaimAmount(this.state, token);
     this.lbClaimable.caption = `${formatNumber(claimAmount)} ${token.symbol || ''}`;
     this.updateBtnClaim(claimAmount.gt(0));
   }
@@ -320,10 +319,9 @@ export default class ScomCommissionClaim extends Module {
       }
       return;
     }
-    if (!isRpcWalletConnected()) {
-      const chainId = getChainId();
+    if (!this.state.isRpcWalletConnected()) {
       const clientWallet = Wallet.getClientInstance();
-      await clientWallet.switchNetwork(chainId);
+      await clientWallet.switchNetwork(this.chainId);
       return;
     }
     this.txStatusModal.message = {
@@ -331,7 +329,7 @@ export default class ScomCommissionClaim extends Module {
       content: 'Confirming'
     };
     this.txStatusModal.showModal();
-    claim(this.tokenSelection.token, (error: Error, receipt?: string) => {
+    claim(this.state, this.tokenSelection.token, (error: Error, receipt?: string) => {
       if (error) {
         this.txStatusModal.message = {
           status: 'error',
@@ -449,6 +447,27 @@ export default class ScomCommissionClaim extends Module {
         setTag: this.setTag.bind(this)
       }
     ]
+  }
+
+  async init() {
+    this.isReadyCallbackQueued = true;
+    super.init();
+    this.initTag();
+    const lazyLoad = this.getAttribute('lazyLoad', true, false);
+    if (!lazyLoad) {
+      const description = this.getAttribute('description', true);
+      const logo = this.getAttribute('logo', true);
+      const logoUrl = this.getAttribute('logoUrl', true);
+      const networks = this.getAttribute('networks', true);
+      const wallets = this.getAttribute('wallets', true);
+      const showHeader = this.getAttribute('showHeader', true);
+      const showFooter = this.getAttribute('showFooter', true);
+      const defaultChainId = this.getAttribute('defaultChainId', true);
+
+      await this.setData({ description, logo, logoUrl, networks, wallets, showHeader, showFooter, defaultChainId });
+    }
+    this.isReadyCallbackQueued = false;
+    this.executeReadyCallback();
   }
 
   render() {

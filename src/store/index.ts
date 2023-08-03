@@ -14,70 +14,65 @@ export interface IContractInfo {
 
 export type ContractInfoByChainType = { [key: number]: IContractInfo };
 
-export const state = {
-  contractInfoByChain: {} as ContractInfoByChainType,
-  rpcWalletId: ''
-}
+export class State {
+  contractInfoByChain: ContractInfoByChainType = {};
+  rpcWalletId: string = '';
+  ipfsGatewayUrl: string = '';
 
-export const setDataFromConfig = (options: any) => {
-  if (options.contractInfo) {
-    setContractInfo(options.contractInfo);
+  constructor(options: any) {
+    this.initData(options);
   }
-}
 
-const setContractInfo = (data: ContractInfoByChainType) => {
-  state.contractInfoByChain = data;
-}
+  private initData(options: any) {
+    if (options.contractInfo) {
+      this.contractInfoByChain = options.contractInfo;
+    }
+    if (options.ipfsGatewayUrl) {
+      this.ipfsGatewayUrl = options.ipfsGatewayUrl;
+    }
+  }
 
-const getContractInfo = (chainId: number) => {
-  return state.contractInfoByChain[chainId];
-}
+  initRpcWallet(defaultChainId: number) {
+    if (this.rpcWalletId) {
+      return this.rpcWalletId;
+    }
+    const clientWallet = Wallet.getClientInstance();
+    const networkList: INetwork[] = Object.values(application.store?.networkMap || []);
+    const instanceId = clientWallet.initRpcWallet({
+      networks: networkList,
+      defaultChainId,
+      infuraId: application.store?.infuraId,
+      multicalls: application.store?.multicalls
+    });
+    this.rpcWalletId = instanceId;
+    if (clientWallet.address) {
+      const rpcWallet = Wallet.getRpcWalletInstance(instanceId);
+      rpcWallet.address = clientWallet.address;
+    }
+    return instanceId;
+  }
+  getRpcWallet() {
+    return this.rpcWalletId ? Wallet.getRpcWalletInstance(this.rpcWalletId) : null;
+  }
 
-export const getContractAddress = (type: ContractType) => {
-  const chainId = getChainId();
-  const contracts = getContractInfo(chainId) || {};
-  return contracts[type]?.address;
+  isRpcWalletConnected() {
+    const wallet = this.getRpcWallet();
+    return wallet?.isConnected;
+  }
+
+  getChainId() {
+    const rpcWallet = this.getRpcWallet();
+    return rpcWallet?.chainId;
+  }
+
+  getContractAddress(type: ContractType) {
+    const chainId = this.getChainId();
+    const contracts = this.contractInfoByChain[chainId] || {};
+    return contracts[type]?.address;
+  }
 }
 
 export function isClientWalletConnected() {
   const wallet = Wallet.getClientInstance();
   return wallet.isConnected;
-}
-
-export function isRpcWalletConnected() {
-  const wallet = getRpcWallet();
-  return wallet?.isConnected;
-}
-
-export function getChainId() {
-  const rpcWallet = getRpcWallet();
-  return rpcWallet?.chainId;
-}
-
-export function initRpcWallet(defaultChainId: number) {
-  if (state.rpcWalletId) {
-    return state.rpcWalletId;
-  }
-  const clientWallet = Wallet.getClientInstance();
-  const networkList: INetwork[] = Object.values(application.store.networkMap);
-  const instanceId = clientWallet.initRpcWallet({
-    networks: networkList,
-    defaultChainId,
-    infuraId: application.store.infuraId,
-    multicalls: application.store.multicalls
-  });
-  state.rpcWalletId = instanceId;
-  if (clientWallet.address) {
-    const rpcWallet = Wallet.getRpcWalletInstance(instanceId);
-    rpcWallet.address = clientWallet.address;
-  }
-  return instanceId;
-}
-
-export function getRpcWallet() {
-  return Wallet.getRpcWalletInstance(state.rpcWalletId);
-}
-
-export function getClientWallet() {
-  return Wallet.getClientInstance();
 }

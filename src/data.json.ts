@@ -1,4 +1,5 @@
 export default {
+    "ipfsGatewayUrl": "https://ipfs.scom.dev/ipfs/",
     "contractInfo": {
         "97": {
             "Proxy": {
