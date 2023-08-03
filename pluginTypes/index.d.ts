@@ -34,18 +34,19 @@ declare module "@scom/scom-commission-claim/store/index.ts" {
     export type ContractInfoByChainType = {
         [key: number]: IContractInfo;
     };
-    export const state: {
+    export class State {
         contractInfoByChain: ContractInfoByChainType;
         rpcWalletId: string;
-    };
-    export const setDataFromConfig: (options: any) => void;
-    export const getContractAddress: (type: ContractType) => any;
+        ipfsGatewayUrl: string;
+        constructor(options: any);
+        private initData;
+        initRpcWallet(defaultChainId: number): string;
+        getRpcWallet(): import("@ijstech/eth-wallet").IRpcWallet;
+        isRpcWalletConnected(): boolean;
+        getChainId(): number;
+        getContractAddress(type: ContractType): any;
+    }
     export function isClientWalletConnected(): boolean;
-    export function isRpcWalletConnected(): boolean;
-    export function getChainId(): number;
-    export function initRpcWallet(defaultChainId: number): string;
-    export function getRpcWallet(): import("@ijstech/eth-wallet").IRpcWallet;
-    export function getClientWallet(): import("@ijstech/eth-wallet").IClientWallet;
 }
 /// <amd-module name="@scom/scom-commission-claim/index.css.ts" />
 declare module "@scom/scom-commission-claim/index.css.ts" {
@@ -1046,6 +1047,9 @@ declare module "@scom/scom-commission-claim/contracts/scom-commission-proxy-cont
                 referrersLength: BigNumber;
             }>;
         };
+        getCampaignsLength: {
+            (options?: TransactionOptions): Promise<BigNumber>;
+        };
         getClaimantBalance: {
             (params: IGetClaimantBalanceParams, options?: TransactionOptions): Promise<BigNumber>;
         };
@@ -1065,6 +1069,9 @@ declare module "@scom/scom-commission-claim/contracts/scom-commission-proxy-cont
         };
         getProjectAdminsLength: {
             (projectId: number | BigNumber, options?: TransactionOptions): Promise<BigNumber>;
+        };
+        getProjectsLength: {
+            (options?: TransactionOptions): Promise<BigNumber>;
         };
         isPermitted: {
             (param1: string, options?: TransactionOptions): Promise<boolean>;
@@ -1392,19 +1399,20 @@ declare module "@scom/scom-commission-claim/utils/index.ts" {
     import { ISendTxEventsOptions } from "@ijstech/eth-wallet";
     export const formatNumber: (value: any, decimals?: number) => string;
     export const formatNumberWithSeparators: (value: number, precision?: number) => string;
-    export const getImageIpfsUrl: (url: string) => string;
     export const registerSendTxEvents: (sendTxEventHandlers: ISendTxEventsOptions) => void;
 }
 /// <amd-module name="@scom/scom-commission-claim/API.ts" />
 declare module "@scom/scom-commission-claim/API.ts" {
+    import { State } from "@scom/scom-commission-claim/store/index.ts";
     import { ITokenObject } from '@scom/scom-token-list';
-    function getClaimAmount(token: ITokenObject): Promise<import("@ijstech/eth-wallet").BigNumber>;
-    function claim(token: ITokenObject, callback?: any, confirmationCallback?: any): Promise<import("@ijstech/eth-contract").TransactionReceipt>;
+    function getClaimAmount(state: State, token: ITokenObject): Promise<import("@ijstech/eth-wallet").BigNumber>;
+    function claim(state: State, token: ITokenObject, callback?: any, confirmationCallback?: any): Promise<import("@ijstech/eth-contract").TransactionReceipt>;
     export { getClaimAmount, claim };
 }
 /// <amd-module name="@scom/scom-commission-claim/data.json.ts" />
 declare module "@scom/scom-commission-claim/data.json.ts" {
     const _default_5: {
+        ipfsGatewayUrl: string;
         contractInfo: {
             "97": {
                 Proxy: {
@@ -1520,6 +1528,7 @@ declare module "@scom/scom-commission-claim" {
         }
     }
     export default class ScomCommissionClaim extends Module {
+        private state;
         private imgLogo;
         private markdownDescription;
         private lbClaimable;
@@ -1534,11 +1543,15 @@ declare module "@scom/scom-commission-claim" {
         defaultEdit: boolean;
         private rpcWalletEvents;
         constructor(parent?: Container, options?: ScomCommissionClaimElement);
+        removeRpcWalletEvents(): void;
+        onHide(): void;
         static create(options?: ScomCommissionClaimElement, parent?: Container): Promise<ScomCommissionClaim>;
         private onChainChanged;
         private refreshWidget;
         private updateBtnClaim;
         private initWallet;
+        private get chainId();
+        private get rpcWallet();
         get description(): string;
         set description(value: string);
         get logo(): string;
@@ -1554,14 +1567,13 @@ declare module "@scom/scom-commission-claim" {
         get defaultChainId(): number;
         set defaultChainId(value: number);
         private getData;
+        private resetRpcWallet;
         private setData;
-        onHide(): void;
         private getTag;
         private updateTag;
         private setTag;
         private updateStyle;
         private updateTheme;
-        init(): Promise<void>;
         private initTag;
         private refetchClaimAmount;
         private selectToken;
@@ -1608,6 +1620,7 @@ declare module "@scom/scom-commission-claim" {
             getTag: any;
             setTag: any;
         })[];
+        init(): Promise<void>;
         render(): any;
     }
 }

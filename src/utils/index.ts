@@ -33,14 +33,6 @@ export const formatNumberWithSeparators = (value: number, precision?: number) =>
   return value.toLocaleString('en-US');
 }
 
-const IPFS_BASE_URL = "https://ipfs.scom.dev/ipfs/";
-
-export const getImageIpfsUrl = (url: string) => {
-  if (url)
-    return IPFS_BASE_URL + url;
-  return url;
-}
-
 export const registerSendTxEvents = (sendTxEventHandlers: ISendTxEventsOptions) => {
   const wallet = Wallet.getClientInstance();
   wallet.registerSendTxEvents({
