@@ -1508,6 +1508,7 @@ declare module "@scom/scom-commission-claim/formSchema.json.ts" {
 declare module "@scom/scom-commission-claim" {
     import { Module, Container, ControlElement, IDataSchema } from '@ijstech/components';
     import { IConfig, INetworkConfig } from "@scom/scom-commission-claim/interface.ts";
+    import { ContractInfoByChainType } from "@scom/scom-commission-claim/store/index.ts";
     import { IWalletPlugin } from '@scom/scom-wallet-modal';
     interface ScomCommissionClaimElement extends ControlElement {
         lazyLoad?: boolean;
@@ -1517,6 +1518,7 @@ declare module "@scom/scom-commission-claim" {
         defaultChainId: number;
         wallets: IWalletPlugin[];
         networks: INetworkConfig[];
+        contractInfo?: ContractInfoByChainType;
         showHeader?: boolean;
         showFooter?: boolean;
     }
@@ -1566,6 +1568,8 @@ declare module "@scom/scom-commission-claim" {
         set showFooter(value: boolean);
         get defaultChainId(): number;
         set defaultChainId(value: number);
+        get contractInfo(): ContractInfoByChainType;
+        set contractInfo(value: ContractInfoByChainType);
         private getData;
         private resetRpcWallet;
         private setData;
