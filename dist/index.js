@@ -2018,6 +2018,12 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
         set defaultChainId(value) {
             this._data.defaultChainId = value;
         }
+        get contractInfo() {
+            return this.state.contractInfoByChain;
+        }
+        set contractInfo(value) {
+            this.state.contractInfoByChain = value;
+        }
         getData() {
             return this._data;
         }
@@ -2273,6 +2279,8 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                 const showHeader = this.getAttribute('showHeader', true);
                 const showFooter = this.getAttribute('showFooter', true);
                 const defaultChainId = this.getAttribute('defaultChainId', true);
+                const contractInfo = this.getAttribute('contractInfo', true, {});
+                this.state.contractInfoByChain = contractInfo;
                 await this.setData({ description, logo, logoUrl, networks, wallets, showHeader, showFooter, defaultChainId });
             }
             this.isReadyCallbackQueued = false;

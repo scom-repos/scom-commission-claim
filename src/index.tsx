@@ -13,7 +13,7 @@ import {
   IDataSchema
 } from '@ijstech/components';
 import { IConfig, INetworkConfig } from './interface';
-import { isClientWalletConnected, State } from './store/index';
+import { ContractInfoByChainType, isClientWalletConnected, State } from './store/index';
 import { imageStyle, markdownStyle, tokenSelectionStyle } from './index.css';
 import { claim, getClaimAmount } from './API';
 import ScomDappContainer from '@scom/scom-dapp-container';
@@ -36,6 +36,7 @@ interface ScomCommissionClaimElement extends ControlElement {
   defaultChainId: number;
   wallets: IWalletPlugin[];
   networks: INetworkConfig[];
+  contractInfo?: ContractInfoByChainType;
   showHeader?: boolean;
   showFooter?: boolean;
 }
@@ -204,6 +205,13 @@ export default class ScomCommissionClaim extends Module {
   }
   set defaultChainId(value: number) {
     this._data.defaultChainId = value;
+  }
+
+  get contractInfo() {
+    return this.state.contractInfoByChain;
+  }
+  set contractInfo(value: ContractInfoByChainType) {
+    this.state.contractInfoByChain = value;
   }
 
   private getData() {
@@ -463,6 +471,8 @@ export default class ScomCommissionClaim extends Module {
       const showHeader = this.getAttribute('showHeader', true);
       const showFooter = this.getAttribute('showFooter', true);
       const defaultChainId = this.getAttribute('defaultChainId', true);
+      const contractInfo = this.getAttribute('contractInfo', true, {});
+      this.state.contractInfoByChain = contractInfo;
 
       await this.setData({ description, logo, logoUrl, networks, wallets, showHeader, showFooter, defaultChainId });
     }
