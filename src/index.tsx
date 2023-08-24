@@ -344,6 +344,12 @@ export default class ScomCommissionClaim extends Module {
           content: error
         };
         this.txStatusModal.showModal();
+      } else if (receipt) {
+        this.txStatusModal.message = {
+          status: 'success',
+          content: receipt
+        };
+        this.txStatusModal.showModal();
       }
     }, () => {
       this.refetchClaimAmount(this.tokenSelection.token);

@@ -1,4 +1,4 @@
-import { Module, customModule, Container, VStack, application } from '@ijstech/components';
+import { Module, customModule, Container, application } from '@ijstech/components';
 import { getMulticallInfoList } from '@scom/scom-multicall';
 import { INetwork } from '@ijstech/eth-wallet';
 import getNetworkList from '@scom/scom-network-list';
@@ -6,8 +6,6 @@ import ScomCommissionClaim from '@scom/scom-commission-claim';
 
 @customModule
 export default class Module1 extends Module {
-    private dapp: ScomCommissionClaim;
-    private mainStack: VStack;
 
     constructor(parent?: Container, options?: any) {
         super(parent, options);
@@ -51,9 +49,22 @@ export default class Module1 extends Module {
 
     render() {
         return <i-panel>
-            <i-hstack id="mainStack" margin={{ top: '1rem', left: '1rem' }} gap="2rem">
+            <i-hstack margin={{ top: '1rem', left: '1rem' }} gap="2rem">
                 <i-scom-commission-claim
                     description="Commission Claim"
+                    logoUrl="https://ipfs.scom.dev/ipfs/bafybeiaabddf67ht6nohe37bvg75ifgvrqeti4iuipuoxhpuvrfg3f4tdi/microdapps/commission.png"
+                    contractInfo={{
+                        97: {
+                            Proxy: {
+                                address: '0x9602cB9A782babc72b1b6C96E050273F631a6870'
+                            }
+                        },
+                        43113: {
+                            Proxy: {
+                                address: '0x7f1EAB0db83c02263539E3bFf99b638E61916B96'
+                            }
+                        }
+                    }}
                     networks={[{
                         chainId: 43113
                     }]}
