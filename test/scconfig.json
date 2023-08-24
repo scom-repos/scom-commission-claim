@@ -1,12 +1,8 @@
 {
   "env": "testnet",
   "main": "@modules/module1",
-  "assets": "@modules/assets",
   "moduleDir": "modules",
   "modules": {
-    "@modules/assets": {
-      "path": "assets"
-    },
     "@modules/module1": {
       "path": "module1"
     }
@@ -18,7 +14,8 @@
     "@ijstech/eth-wallet": "*",
     "@scom/scom-token-input": "*",
     "@scom/scom-wallet-modal": "*",
-    "@scom/scom-token-list": "*"
+    "@scom/scom-token-list": "*",
+    "@scom/scom-commission-proxy-contract": "*"
   },
   "menus": [
     {
@@ -59,10 +56,7 @@
       "text": {
         "secondary": "hsla(0, 0%, 100%, 0.6)"
       },
-      "divider": "#FFFFFF",
-      "typography": {
-        "fontFamily": "Raleway"
-      }
+      "divider": "#FFFFFF"
     },
     "light": {}
   },

@@ -1,5 +1,5 @@
-import { Utils, Wallet } from '@ijstech/eth-wallet';
-import { Contracts as ProxyContracts } from './contracts/scom-commission-proxy-contract/index';
+import { TransactionReceipt, Utils, Wallet } from '@ijstech/eth-wallet';
+import { Contracts as ProxyContracts } from '@scom/scom-commission-proxy-contract';
 import { State } from './store/index';
 import { registerSendTxEvents } from './utils/index';
 import { ITokenObject } from '@scom/scom-token-list';
@@ -24,7 +24,12 @@ async function claim(state: State, token: ITokenObject, callback?: any, confirma
     transactionHash: callback,
     confirmation: confirmationCallback
   });
-  const receipt = await distributor.claim(token.address ?? Utils.nullAddress);
+  let receipt: TransactionReceipt;
+  try {
+    receipt = await distributor.claim(token.address ?? Utils.nullAddress);
+  } catch (error) {
+    callback(error);
+  }
   return receipt;
 }
 

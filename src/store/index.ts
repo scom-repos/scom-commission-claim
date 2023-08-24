@@ -8,8 +8,8 @@ export interface IContractDetailInfo {
 export type ContractType = 'Proxy' | 'Distributor';
 
 export interface IContractInfo {
-  Proxy: IContractDetailInfo;
-  Distributor: IContractDetailInfo;
+  Proxy?: IContractDetailInfo;
+  Distributor?: IContractDetailInfo;
 }
 
 export type ContractInfoByChainType = { [key: number]: IContractInfo };
