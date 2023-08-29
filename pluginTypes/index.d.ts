@@ -102,73 +102,140 @@ declare module "@scom/scom-commission-claim/data.json.ts" {
 /// <amd-module name="@scom/scom-commission-claim/formSchema.json.ts" />
 declare module "@scom/scom-commission-claim/formSchema.json.ts" {
     const _default_1: {
-        general: {
-            dataSchema: {
-                type: string;
-                properties: {
-                    description: {
-                        type: string;
-                        format: string;
-                    };
-                    logo: {
-                        type: string;
-                        format: string;
-                    };
-                    logoUrl: {
-                        type: string;
-                        title: string;
+        builderSchema: {
+            type: string;
+            properties: {
+                dark: {
+                    type: string;
+                    properties: {
+                        backgroundColor: {
+                            type: string;
+                            format: string;
+                        };
+                        fontColor: {
+                            type: string;
+                            format: string;
+                        };
                     };
                 };
-            };
-            embedderSchema: {
-                type: string;
-                properties: {
-                    description: {
-                        type: string;
-                        format: string;
+                light: {
+                    type: string;
+                    properties: {
+                        backgroundColor: {
+                            type: string;
+                            format: string;
+                        };
+                        fontColor: {
+                            type: string;
+                            format: string;
+                        };
                     };
+                };
+                description: {
+                    type: string;
+                    format: string;
+                };
+                logo: {
+                    type: string;
+                    format: string;
+                };
+                logoUrl: {
+                    type: string;
+                    title: string;
                 };
             };
         };
-        theme: {
-            dataSchema: {
-                type: string;
-                properties: {
-                    dark: {
-                        type: string;
-                        properties: {
-                            backgroundColor: {
-                                type: string;
-                                format: string;
-                            };
-                            fontColor: {
-                                type: string;
-                                format: string;
-                            };
+        embedderSchema: {
+            type: string;
+            properties: {
+                dark: {
+                    type: string;
+                    properties: {
+                        backgroundColor: {
+                            type: string;
+                            format: string;
                         };
-                    };
-                    light: {
-                        type: string;
-                        properties: {
-                            backgroundColor: {
-                                type: string;
-                                format: string;
-                            };
-                            fontColor: {
-                                type: string;
-                                format: string;
-                            };
+                        fontColor: {
+                            type: string;
+                            format: string;
                         };
                     };
                 };
+                light: {
+                    type: string;
+                    properties: {
+                        backgroundColor: {
+                            type: string;
+                            format: string;
+                        };
+                        fontColor: {
+                            type: string;
+                            format: string;
+                        };
+                    };
+                };
+                description: {
+                    type: string;
+                    format: string;
+                };
             };
+        };
+        builderUISchema: {
+            type: string;
+            elements: ({
+                type: string;
+                label: string;
+                elements: {
+                    type: string;
+                    elements: {
+                        type: string;
+                        label: string;
+                        scope: string;
+                    }[];
+                }[];
+            } | {
+                type: string;
+                label: string;
+                elements: {
+                    type: string;
+                    elements: {
+                        type: string;
+                        scope: string;
+                    }[];
+                }[];
+            })[];
+        };
+        embedderUISchema: {
+            type: string;
+            elements: ({
+                type: string;
+                label: string;
+                elements: {
+                    type: string;
+                    elements: {
+                        type: string;
+                        label: string;
+                        scope: string;
+                    }[];
+                }[];
+            } | {
+                type: string;
+                label: string;
+                elements: {
+                    type: string;
+                    elements: {
+                        type: string;
+                        scope: string;
+                    }[];
+                }[];
+            })[];
         };
     };
     export default _default_1;
 }
 /// <amd-module name="@scom/scom-commission-claim" />
 declare module "@scom/scom-commission-claim" {
-    import { Module, Container, ControlElement, IDataSchema } from '@ijstech/components';
+    import { Module, Container, ControlElement, IDataSchema, IUISchema } from '@ijstech/components';
     import { IConfig, INetworkConfig } from "@scom/scom-commission-claim/interface.ts";
     import { ContractInfoByChainType } from "@scom/scom-commission-claim/store/index.ts";
     import { IWalletPlugin } from '@scom/scom-wallet-modal';
@@ -257,6 +324,7 @@ declare module "@scom/scom-commission-claim" {
                     redo: () => void;
                 };
                 userInputDataSchema: IDataSchema;
+                userInputUISchema: IUISchema;
             }[];
             getData: any;
             setData: (data: IConfig) => Promise<void>;
@@ -276,6 +344,7 @@ declare module "@scom/scom-commission-claim" {
                     redo: () => void;
                 };
                 userInputDataSchema: IDataSchema;
+                userInputUISchema: IUISchema;
             }[];
             getLinkParams: () => {
                 data: string;

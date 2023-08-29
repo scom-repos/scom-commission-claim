@@ -10,7 +10,8 @@ import {
   application,
   customElements,
   ControlElement,
-  IDataSchema
+  IDataSchema,
+  IUISchema
 } from '@ijstech/components';
 import { IConfig, INetworkConfig } from './interface';
 import { ContractInfoByChainType, isClientWalletConnected, State } from './store/index';
@@ -356,59 +357,59 @@ export default class ScomCommissionClaim extends Module {
     });
   }
 
-  private _getActions(propertiesSchema: IDataSchema, themeSchema: IDataSchema) {
+  private _getActions(dataSchema: IDataSchema, uiSchema: IUISchema) {
     const actions = [
       {
-        name: 'Settings',
-        icon: 'cog',
+        name: 'Edit',
+        icon: 'edit',
         command: (builder: any, userInputData: any) => {
-          let _oldData: IConfig = {
+          let oldData: IConfig = {
             defaultChainId: 0,
             wallets: [],
             networks: []
           };
-          return {
-            execute: async () => {
-              _oldData = { ...this._data };
-              this._data.logo = userInputData.logo;
-              this._data.logoUrl = userInputData.logoUrl;
-              this._data.description = userInputData.description;
-              this.setData(this._data);
-              if (builder?.setData) builder.setData(this._data);
-            },
-            undo: () => {
-              this.setData(_oldData);
-              if (builder?.setData) builder.setData(_oldData);
-            },
-            redo: () => { }
-          }
-        },
-        userInputDataSchema: propertiesSchema
-      },
-      {
-        name: 'Theme Settings',
-        icon: 'palette',
-        command: (builder: any, userInputData: any) => {
           let oldTag = {};
           return {
             execute: async () => {
-              if (!userInputData) return;
+              oldData = JSON.parse(JSON.stringify(this._data));
+              const {
+                logo,
+                logoUrl,
+                description,
+                ...themeSettings
+              } = userInputData;
+
+              const generalSettings = {
+                logo,
+                logoUrl,
+                description,
+              };
+              this._data.logo = generalSettings.logo;
+              this._data.logoUrl = generalSettings.logoUrl;
+              this._data.description = generalSettings.description;
+              this.setData(this._data);
+              if (builder?.setData) builder.setData(this._data);
+
               oldTag = JSON.parse(JSON.stringify(this.tag));
-              if (builder) builder.setTag(userInputData);
-              else this.setTag(userInputData);
-              if (this.dappContainer) this.dappContainer.setTag(userInputData);
+              if (builder?.setTag) builder.setTag(themeSettings);
+              else this.setTag(themeSettings);
+              if (this.dappContainer) this.dappContainer.setTag(themeSettings);
             },
             undo: () => {
-              if (!userInputData) return;
+              this._data = JSON.parse(JSON.stringify(oldData));
+              this.setData(this._data);
+              if (builder?.setData) builder.setData(oldData);
+
               this.tag = JSON.parse(JSON.stringify(oldTag));
-              if (builder) builder.setTag(this.tag);
+              if (builder?.setTag) builder.setTag(this.tag);
               else this.setTag(this.tag);
               if (this.dappContainer) this.dappContainer.setTag(this.tag);
             },
             redo: () => { }
           }
         },
-        userInputDataSchema: themeSchema
+        userInputDataSchema: dataSchema,
+        userInputUISchema: uiSchema
       }
     ]
     return actions
@@ -421,7 +422,7 @@ export default class ScomCommissionClaim extends Module {
         name: 'Builder Configurator',
         target: 'Builders',
         getActions: () => {
-          return this._getActions(formSchema.general.dataSchema as IDataSchema, formSchema.theme.dataSchema as IDataSchema);
+          return this._getActions(formSchema.builderSchema as IDataSchema, formSchema.builderUISchema as IUISchema);
         },
         getData: this.getData.bind(this),
         setData: async (data: IConfig) => {
@@ -435,7 +436,7 @@ export default class ScomCommissionClaim extends Module {
         name: 'Emdedder Configurator',
         target: 'Embedders',
         getActions: () => {
-          return this._getActions(formSchema.general.embedderSchema as IDataSchema, formSchema.theme.dataSchema as IDataSchema);
+          return this._getActions(formSchema.embedderSchema as IDataSchema, formSchema.embedderUISchema as IUISchema);
         },
         getLinkParams: () => {
           const data = this._data || {};
