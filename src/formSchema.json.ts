@@ -9,48 +9,116 @@ const theme = {
     }
 }
 
+const themeDataSchema = {
+    dark: {
+        type: 'object',
+        properties: theme
+    },
+    light: {
+        type: 'object',
+        properties: theme
+    }
+}
+
+const themeUISchema = {
+    type: 'Category',
+    label: 'Theme',
+    elements: [
+        {
+            type: 'VerticalLayout',
+            elements: [
+                {
+                    type: 'Control',
+                    label: 'Dark',
+                    scope: '#/properties/dark'
+                },
+                {
+                    type: 'Control',
+                    label: 'Light',
+                    scope: '#/properties/light'
+                }
+            ]
+        }
+    ]
+}
+
 export default {
-    general: {
-        dataSchema: {
-            type: 'object',
-            properties: {
-                description: {
-                    type: 'string',
-                    format: 'multi'
-                },
-                logo: {
-                    type: 'string',
-                    format: 'data-cid'
-                },
-                logoUrl: {
-                    type: 'string',
-                    title: 'Logo URL'
-                }
-            }
-        },
-        embedderSchema: {
-            type: 'object',
-            properties: {
-                description: {
-                    type: 'string',
-                    format: 'multi'
-                }
-            }
+    builderSchema: {
+        type: 'object',
+        properties: {
+            description: {
+                type: 'string',
+                format: 'multi'
+            },
+            logo: {
+                type: 'string',
+                format: 'data-cid'
+            },
+            logoUrl: {
+                type: 'string',
+                title: 'Logo URL'
+            },
+            ...themeDataSchema
         }
     },
-    theme: {
-        dataSchema: {
-            type: 'object',
-            properties: {
-                "dark": {
-                    type: 'object',
-                    properties: theme
-                },
-                "light": {
-                    type: 'object',
-                    properties: theme
-                }
-            }
+    embedderSchema: {
+        type: 'object',
+        properties: {
+            description: {
+                type: 'string',
+                format: 'multi'
+            },
+            ...themeDataSchema
         }
+    },
+    builderUISchema: {
+        type: 'Categorization',
+        elements: [
+            {
+                type: 'Category',
+                label: 'General',
+                elements: [
+                    {
+                        type: 'VerticalLayout',
+                        elements: [
+                            {
+                                type: 'Control',
+                                scope: '#/properties/description'
+                            },
+                            {
+                                type: 'Control',
+                                scope: '#/properties/logo'
+                            },
+                            {
+                                type: 'Control',
+                                scope: '#/properties/logoUrl'
+                            }
+                        ]
+                    }
+                ]
+            },
+            themeUISchema
+        ]
+    },
+    embedderUISchema: {
+        type: 'Categorization',
+        elements: [
+            {
+                type: 'Category',
+                label: 'General',
+                elements: [
+                    {
+                        type: 'VerticalLayout',
+                        elements: [
+                            {
+                                type: 'Control',
+                                scope: '#/properties/description'
+                            }
+                        ]
+                    }
+                ]
+            },
+            themeUISchema
+        ]
     }
 }
