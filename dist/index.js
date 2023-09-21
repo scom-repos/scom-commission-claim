@@ -123,44 +123,18 @@ define("@scom/scom-commission-claim/index.css.ts", ["require", "exports", "@ijst
         }
     });
 });
-define("@scom/scom-commission-claim/utils/index.ts", ["require", "exports", "@ijstech/eth-wallet"], function (require, exports, eth_wallet_2) {
+define("@scom/scom-commission-claim/utils/index.ts", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet"], function (require, exports, components_3, eth_wallet_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.registerSendTxEvents = exports.formatNumberWithSeparators = exports.formatNumber = void 0;
-    const formatNumber = (value, decimals) => {
-        let val = value;
+    exports.registerSendTxEvents = exports.formatNumber = void 0;
+    const formatNumber = (value, decimalFigures) => {
+        if (typeof value === 'object') {
+            value = value.toString();
+        }
         const minValue = '0.0000001';
-        if (typeof value === 'string') {
-            val = new eth_wallet_2.BigNumber(value).toNumber();
-        }
-        else if (typeof value === 'object') {
-            val = value.toNumber();
-        }
-        if (val != 0 && new eth_wallet_2.BigNumber(val).lt(minValue)) {
-            return `<${minValue}`;
-        }
-        return (0, exports.formatNumberWithSeparators)(val, decimals || 4);
+        return components_3.FormatUtils.formatNumber(value, { decimalFigures: decimalFigures || 4, minValue });
     };
     exports.formatNumber = formatNumber;
-    const formatNumberWithSeparators = (value, precision) => {
-        if (!value)
-            value = 0;
-        if (precision) {
-            let outputStr = '';
-            if (value >= 1) {
-                outputStr = value.toLocaleString('en-US', { maximumFractionDigits: precision });
-            }
-            else {
-                outputStr = value.toLocaleString('en-US', { maximumSignificantDigits: precision });
-            }
-            if (outputStr.length > 18) {
-                outputStr = outputStr.substring(0, 18) + '...';
-            }
-            return outputStr;
-        }
-        return value.toLocaleString('en-US');
-    };
-    exports.formatNumberWithSeparators = formatNumberWithSeparators;
     const registerSendTxEvents = (sendTxEventHandlers) => {
         const wallet = eth_wallet_2.Wallet.getClientInstance();
         wallet.registerSendTxEvents({
@@ -368,11 +342,11 @@ define("@scom/scom-commission-claim/formSchema.json.ts", ["require", "exports"],
         }
     };
 });
-define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/components", "@scom/scom-commission-claim/store/index.ts", "@scom/scom-commission-claim/index.css.ts", "@scom/scom-commission-claim/API.ts", "@scom/scom-commission-claim/data.json.ts", "@scom/scom-commission-claim/utils/index.ts", "@ijstech/eth-wallet", "@scom/scom-commission-claim/formSchema.json.ts"], function (require, exports, components_3, index_2, index_css_1, API_1, data_json_1, index_3, eth_wallet_4, formSchema_json_1) {
+define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/components", "@scom/scom-commission-claim/store/index.ts", "@scom/scom-commission-claim/index.css.ts", "@scom/scom-commission-claim/API.ts", "@scom/scom-commission-claim/data.json.ts", "@scom/scom-commission-claim/utils/index.ts", "@ijstech/eth-wallet", "@scom/scom-commission-claim/formSchema.json.ts"], function (require, exports, components_4, index_2, index_css_1, API_1, data_json_1, index_3, eth_wallet_4, formSchema_json_1) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    const Theme = components_3.Styles.Theme.ThemeVars;
-    let ScomCommissionClaim = class ScomCommissionClaim extends components_3.Module {
+    const Theme = components_4.Styles.Theme.ThemeVars;
+    let ScomCommissionClaim = class ScomCommissionClaim extends components_4.Module {
         constructor(parent, options) {
             super(parent, options);
             this._data = {
@@ -595,8 +569,8 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                 };
             };
             const defaultTag = {
-                dark: getColors(components_3.Styles.Theme.darkTheme),
-                light: getColors(components_3.Styles.Theme.defaultTheme)
+                dark: getColors(components_4.Styles.Theme.darkTheme),
+                light: getColors(components_4.Styles.Theme.defaultTheme)
             };
             this.setTag(defaultTag);
         }
@@ -617,7 +591,7 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
         async onClaim() {
             if (!(0, index_2.isClientWalletConnected)()) {
                 if (this.mdWallet) {
-                    await components_3.application.loadPackage('@scom/scom-wallet-modal', '*');
+                    await components_4.application.loadPackage('@scom/scom-wallet-modal', '*');
                     this.mdWallet.networks = this.networks;
                     this.mdWallet.wallets = this.wallets;
                     this.mdWallet.showModal();
@@ -803,8 +777,8 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
         }
     };
     ScomCommissionClaim = __decorate([
-        components_3.customModule,
-        (0, components_3.customElements)('i-scom-commission-claim')
+        components_4.customModule,
+        (0, components_4.customElements)('i-scom-commission-claim')
     ], ScomCommissionClaim);
     exports.default = ScomCommissionClaim;
 });

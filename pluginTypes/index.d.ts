@@ -57,9 +57,8 @@ declare module "@scom/scom-commission-claim/index.css.ts" {
 }
 /// <amd-module name="@scom/scom-commission-claim/utils/index.ts" />
 declare module "@scom/scom-commission-claim/utils/index.ts" {
-    import { ISendTxEventsOptions } from "@ijstech/eth-wallet";
-    export const formatNumber: (value: any, decimals?: number) => string;
-    export const formatNumberWithSeparators: (value: number, precision?: number) => string;
+    import { BigNumber, ISendTxEventsOptions } from "@ijstech/eth-wallet";
+    export const formatNumber: (value: number | string | BigNumber, decimalFigures?: number) => string;
     export const registerSendTxEvents: (sendTxEventHandlers: ISendTxEventsOptions) => void;
 }
 /// <amd-module name="@scom/scom-commission-claim/API.ts" />
