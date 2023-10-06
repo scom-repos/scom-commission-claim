@@ -1,8 +1,6 @@
 /// <reference path="@ijstech/eth-wallet/index.d.ts" />
 /// <reference path="@scom/scom-commission-proxy-contract/@ijstech/eth-wallet/index.d.ts" />
 /// <reference path="@scom/scom-dapp-container/@ijstech/eth-wallet/index.d.ts" />
-/// <reference path="@scom/scom-token-input/@ijstech/eth-wallet/index.d.ts" />
-/// <reference path="@scom/scom-token-input/@scom/scom-token-modal/@ijstech/eth-wallet/index.d.ts" />
 /// <amd-module name="@scom/scom-commission-claim/interface.ts" />
 declare module "@scom/scom-commission-claim/interface.ts" {
     import { IWalletPlugin } from "@scom/scom-wallet-modal";
@@ -50,10 +48,7 @@ declare module "@scom/scom-commission-claim/store/index.ts" {
 }
 /// <amd-module name="@scom/scom-commission-claim/index.css.ts" />
 declare module "@scom/scom-commission-claim/index.css.ts" {
-    export const imageStyle: string;
     export const markdownStyle: string;
-    export const inputStyle: string;
-    export const tokenSelectionStyle: string;
 }
 /// <amd-module name="@scom/scom-commission-claim/utils/index.ts" />
 declare module "@scom/scom-commission-claim/utils/index.ts" {

@@ -15,7 +15,7 @@ import {
 } from '@ijstech/components';
 import { IConfig, INetworkConfig } from './interface';
 import { ContractInfoByChainType, isClientWalletConnected, State } from './store/index';
-import { imageStyle, markdownStyle, tokenSelectionStyle } from './index.css';
+import { markdownStyle } from './index.css';
 import { claim, getClaimAmount } from './API';
 import ScomDappContainer from '@scom/scom-dapp-container';
 import configData from './data.json';
@@ -101,6 +101,7 @@ export default class ScomCommissionClaim extends Module {
   private onChainChanged = async () => {
     if (this.tokenSelection) {
       this.tokenSelection.token = undefined;
+      this.tokenSelection.chainId = this.state.getChainId();
     }
     await this.refreshWidget();
   }
@@ -246,9 +247,10 @@ export default class ScomCommissionClaim extends Module {
     this._data = data;
     await this.resetRpcWallet();
     if (!this.tokenSelection.isConnected) await this.tokenSelection.ready();
-    if (this.tokenSelection.rpcWalletId !== this.rpcWallet.instanceId) {
-      this.tokenSelection.rpcWalletId = this.rpcWallet.instanceId;
-    }
+    // if (this.tokenSelection.rpcWalletId !== this.rpcWallet.instanceId) {
+    //   this.tokenSelection.rpcWalletId = this.rpcWallet.instanceId;
+    // }
+    this.tokenSelection.chainId = this.state.getChainId() ?? this.defaultChainId;
     await this.refreshWidget();
   }
 
@@ -504,7 +506,13 @@ export default class ScomCommissionClaim extends Module {
             >
               <i-label caption="Commission Claim" font={{ bold: true, size: '1rem' }} />
               <i-vstack gap={8}>
-                <i-image id="imgLogo" class={imageStyle} height={100} />
+                <i-image
+                  id="imgLogo"
+                  maxWidth='unset'
+                  maxHeight='unset'
+                  border={{radius: 4}}
+                  height={100}
+                />
                 <i-markdown
                   id="markdownDescription"
                   class={markdownStyle}
@@ -523,7 +531,9 @@ export default class ScomCommissionClaim extends Module {
                     isCommonShown={false}
                     isBtnMaxShown={false}
                     isSortBalanceShown={false}
-                    class={tokenSelectionStyle}
+                    modalStyles={{
+                      maxWidth: 140
+                    }}
                     onSelectToken={this.selectToken}
                   />
                 </i-hstack>
