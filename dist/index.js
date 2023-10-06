@@ -86,41 +86,11 @@ define("@scom/scom-commission-claim/store/index.ts", ["require", "exports", "@ij
 define("@scom/scom-commission-claim/index.css.ts", ["require", "exports", "@ijstech/components"], function (require, exports, components_2) {
     "use strict";
     Object.defineProperty(exports, "__esModule", { value: true });
-    exports.tokenSelectionStyle = exports.inputStyle = exports.markdownStyle = exports.imageStyle = void 0;
+    exports.markdownStyle = void 0;
     const Theme = components_2.Styles.Theme.ThemeVars;
-    exports.imageStyle = components_2.Styles.style({
-        $nest: {
-            '&>img': {
-                maxWidth: 'unset',
-                maxHeight: 'unset',
-                borderRadius: 4
-            }
-        }
-    });
     exports.markdownStyle = components_2.Styles.style({
         overflowWrap: 'break-word',
         color: Theme.text.primary
-    });
-    exports.inputStyle = components_2.Styles.style({
-        $nest: {
-            '> input': {
-                background: 'transparent',
-                border: 0,
-                padding: '0.25rem 0.5rem',
-                textAlign: 'right'
-            }
-        }
-    });
-    exports.tokenSelectionStyle = components_2.Styles.style({
-        $nest: {
-            'i-modal': {
-                minWidth: 'auto !important',
-                maxWidth: '140px !important'
-            },
-            '.modal': {
-                minWidth: 'auto !important',
-            }
-        }
     });
 });
 define("@scom/scom-commission-claim/utils/index.ts", ["require", "exports", "@ijstech/components", "@ijstech/eth-wallet"], function (require, exports, components_3, eth_wallet_2) {
@@ -360,6 +330,7 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
             this.onChainChanged = async () => {
                 if (this.tokenSelection) {
                     this.tokenSelection.token = undefined;
+                    this.tokenSelection.chainId = this.state.getChainId();
                 }
                 await this.refreshWidget();
             };
@@ -518,13 +489,15 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                 this.dappContainer.setData(data);
         }
         async setData(data) {
+            var _a;
             this._data = data;
             await this.resetRpcWallet();
             if (!this.tokenSelection.isConnected)
                 await this.tokenSelection.ready();
-            if (this.tokenSelection.rpcWalletId !== this.rpcWallet.instanceId) {
-                this.tokenSelection.rpcWalletId = this.rpcWallet.instanceId;
-            }
+            // if (this.tokenSelection.rpcWalletId !== this.rpcWallet.instanceId) {
+            //   this.tokenSelection.rpcWalletId = this.rpcWallet.instanceId;
+            // }
+            this.tokenSelection.chainId = (_a = this.state.getChainId()) !== null && _a !== void 0 ? _a : this.defaultChainId;
             await this.refreshWidget();
         }
         getTag() {
@@ -757,12 +730,14 @@ define("@scom/scom-commission-claim", ["require", "exports", "@ijstech/component
                         this.$render("i-vstack", { gap: 8, padding: { top: '0.5rem', bottom: '0.5rem', left: '0.5rem', right: '0.5rem' }, verticalAlignment: "space-between", horizontalAlignment: "center" },
                             this.$render("i-label", { caption: "Commission Claim", font: { bold: true, size: '1rem' } }),
                             this.$render("i-vstack", { gap: 8 },
-                                this.$render("i-image", { id: "imgLogo", class: index_css_1.imageStyle, height: 100 }),
+                                this.$render("i-image", { id: "imgLogo", maxWidth: 'unset', maxHeight: 'unset', border: { radius: 4 }, height: 100 }),
                                 this.$render("i-markdown", { id: "markdownDescription", class: index_css_1.markdownStyle, width: "100%", height: "100%" })),
                             this.$render("i-vstack", { gap: 12 },
                                 this.$render("i-hstack", { gap: 8, width: "100%", verticalAlignment: "center" },
                                     this.$render("i-label", { caption: "Token:", font: { size: '0.875rem' }, margin: { top: 8 } }),
-                                    this.$render("i-scom-token-input", { id: "tokenSelection", type: "combobox", isBalanceShown: false, isInputShown: false, isCommonShown: false, isBtnMaxShown: false, isSortBalanceShown: false, class: index_css_1.tokenSelectionStyle, onSelectToken: this.selectToken })),
+                                    this.$render("i-scom-token-input", { id: "tokenSelection", type: "combobox", isBalanceShown: false, isInputShown: false, isCommonShown: false, isBtnMaxShown: false, isSortBalanceShown: false, modalStyles: {
+                                            maxWidth: 140
+                                        }, onSelectToken: this.selectToken })),
                                 this.$render("i-hstack", { width: "100%", gap: "0.5rem", verticalAlignment: "center" },
                                     this.$render("i-label", { caption: "Claimable:", font: { size: '0.875rem' } }),
                                     this.$render("i-label", { id: "lbClaimable", caption: "0.00", font: { size: '0.875rem' } })),
